@@ -254,14 +254,17 @@ def exp(a):
     return Exp()(a)
 
 
+#TODO: add inplace=True
 class ReLU(Op):
+    # def __init__(inplace: bool = False):
+
     def compute(self, a):
         out = a.copy()
         out[out < 0] = 0
         return out
 
     def gradient(self, out_grad, node):
-        out = node.realize_data().copy()
+        out = node.underly().copy()
         out[out > 0] = 1
         out[out <= 0] = 0
         return out_grad * Tensor(out)

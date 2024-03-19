@@ -106,8 +106,8 @@ def nn_epoch(X, y, W1, W2, lr=0.1, batch=100):
         loss.backward()
         # W1 = (W1 - lr * W1.grad).detach()
         # W2 = (W2 - lr * W2.grad).detach()
-        W1 = pt.Tensor(W1.realize_data() - lr * W1.grad.realize_data(), requires_grad=True)
-        W2 = pt.Tensor(W2.realize_data() - lr * W2.grad.realize_data(), requires_grad=True)
+        W1 = pt.Tensor(W1 - lr * W1.grad, requires_grad=True)
+        W2 = pt.Tensor(W2 - lr * W2.grad, requires_grad=True)
     return W1, W2
     ### END YOUR SOLUTION
 

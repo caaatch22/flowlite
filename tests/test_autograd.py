@@ -361,12 +361,12 @@ def gradient_check(f, *args, tol=1e-6, backward=False, **kwargs):
     eps = 1e-4
     numerical_grads = [np.zeros(a.shape) for a in args]
     for i in range(len(args)):
-        for j in range(args[i].realize_data().size):
-            args[i].realize_data().flat[j] += eps
+        for j in range(args[i].underly().size):
+            args[i].underly().flat[j] += eps
             f1 = float(f(*args, **kwargs).numpy().sum())
-            args[i].realize_data().flat[j] -= 2 * eps
+            args[i].underly().flat[j] -= 2 * eps
             f2 = float(f(*args, **kwargs).numpy().sum())
-            args[i].realize_data().flat[j] += eps
+            args[i].underly().flat[j] += eps
             numerical_grads[i].flat[j] = (f1 - f2) / (2 * eps)
     if not backward:
         out = f(*args, **kwargs)
