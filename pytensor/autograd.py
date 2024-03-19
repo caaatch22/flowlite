@@ -224,8 +224,8 @@ class Tensor:
     def matmul(self, other):
         return pytensor.ops.MatMul()(self, other)
 
-    def sum(self, axes=None):
-        return pytensor.ops.Summation(axes)(self)
+    def sum(self, dim = None, keepdim: bool = False):
+        return pytensor.ops.Sum(dim, keepdim)(self)
 
     def broadcast_to(self, shape):
         return pytensor.ops.BroadcastTo(shape)(self)
@@ -236,8 +236,10 @@ class Tensor:
     def __neg__(self):
         return pytensor.ops.Negate()(self)
 
-    def transpose(self, axes=None):
-        return pytensor.ops.Transpose(axes)(self)
+    def transpose(self, dim0: int, dim1: int):
+        return pytensor.ops.Transpose(dim0=dim0, dim1=dim1)(self)
+    
+    #TODO: add tensor.T(), checkout args in pytorch
 
     __radd__ = __add__
     __rmul__ = __mul__

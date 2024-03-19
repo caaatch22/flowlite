@@ -10,7 +10,7 @@ import pytensor as pt
 
 
 ##############################################################################
-### TESTS/SUBMISSION CODE FOR forward passes
+### TESTS CODE FOR forward passes
 def test_power_scalar_forward():
     np.testing.assert_allclose(
         pt.power_scalar(pt.Tensor([[0.5, 2.0, 3.0]]), scalar=2).numpy(),

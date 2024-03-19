@@ -1,5 +1,5 @@
 
-from typing import Optional
+from typing import Optional, Union, Tuple
 
 from ..autograd import NDArray
 from ..autograd import Op, Tensor
@@ -125,29 +125,28 @@ def divide_scalar(a, scalar):
 
 
 class Transpose(Op):
-    def __init__(self, axes: Optional[tuple] = None):
-        self.axes = axes
+    def __init__(self, dim0: int, dim1: int):
+        self.dim0 = dim0
+        self.dim1 = dim1
 
-    def compute(self, a):
-        if self.axes:
-            return array_api.swapaxes(a, self.axes[0], self.axes[1])
-        else:
-            return array_api.swapaxes(a, a.ndim - 2, a.ndim - 1)
+    def compute(self, x: NDArray) -> NDArray:
+        return array_api.swapaxes(x, self.dim0, self.dim1)
 
     def gradient(self, out_grad, node):
-        return out_grad.transpose(self.axes)
+        return out_grad.transpose(self.dim0, self.dim1)
 
 
-def transpose(a, axes=None):
-    return Transpose(axes)(a)
+def transpose(x: Tensor, dim0: int, dim1: int) -> Tensor:
+    return Transpose(dim0=dim0, dim1=dim1)(x)
 
 
+# TODO: to be consistent with pytorch
 class Reshape(Op):
     def __init__(self, shape):
         self.shape = shape
 
-    def compute(self, a):
-        return a.reshape(self.shape)
+    def compute(self, x: NDArray) -> NDArray:
+        return x.reshape(self.shape)
 
     def gradient(self, out_grad, node):
         return out_grad.reshape(node.inputs[0].shape)
@@ -178,34 +177,42 @@ def broadcast_to(a, shape):
     return BroadcastTo(shape)(a)
 
 
-class Summation(Op):
-    def __init__(self, axes: Optional[tuple] = None):
-        self.axes = axes
+class Sum(Op):
+    def __init__(self, dim: Union[int, Tuple[int, ...]] = None, keepdim: bool = False):
+        self.dim = dim
+        self.keepdim = keepdim
 
     def compute(self, a):
-        return array_api.sum(a, self.axes)
+        return array_api.sum(a, self.dim)
 
-    def gradient(self, out_grad, node):
+    def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
+        #TODO: not sure for keepdim == True
+        if self.keepdim == True:
+            return out_grad.broadcast_to(node.inputs[0].shape)
+
         new_shape = list(node.inputs[0].shape)
-        axes = range(len(new_shape)) if self.axes is None else self.axes
-        if isinstance(axes, int):
-            axes = [axes]  # Convert single integer to a list
-        for axis in axes:
-            new_shape[axis] = 1
+        dims = range(len(new_shape)) if self.dim is None else self.dim
+        if isinstance(self.dim, int):
+            dims = [self.dim]  # Convert single integer to a list
+        for dim in dims:
+            new_shape[dim] = 1
         return out_grad.reshape(new_shape).broadcast_to(node.inputs[0].shape)
 
 
-def summation(a, axes=None):
-    return Summation(axes)(a)
+def sum(x: Tensor, dim = None, keepdim: bool = False):
+    return Sum(dim, keepdim)(x)
 
 
 class MatMul(Op):
-    def compute(self, a, b):
+    def compute(self, a: NDArray, b: NDArray) -> NDArray:
         return array_api.matmul(a, b)
 
     def gradient(self, out_grad, node):
         lhs, rhs = node.inputs
-        lgrad, rgrad = matmul(out_grad, rhs.transpose()), matmul(lhs.transpose(), out_grad)
+        lhs_ndim = len(lhs.shape)
+        rhs_ndim = len(rhs.shape)
+        #TODO: maybe let transpose accept None
+        lgrad, rgrad = matmul(out_grad, rhs.transpose(rhs_ndim - 1, rhs_ndim - 2)), matmul(lhs.transpose(lhs_ndim - 1, lhs_ndim - 2), out_grad)
         
         if len(lhs.shape) < len(lgrad.shape):
             lgrad = lgrad.sum(tuple([i for i in range(len(lgrad.shape) - len(lhs.shape))]))
