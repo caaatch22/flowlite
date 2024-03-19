@@ -5,7 +5,6 @@ import numpy
 
 from pytensor import init
 
-LAZY_MODE = False
 TENSOR_COUNTER = 0
 
 import numpy as array_api
@@ -36,9 +35,9 @@ class Op:
 class Tensor:
     op: Optional[Op]
     inputs: List['Tensor']
-    shared_data: NDArray
+    underlying_data: NDArray
     requires_grad: bool
-    grad: 'Tensor'
+    grad: Optional['Tensor']
     
     def __init__(
         self,
@@ -52,22 +51,28 @@ class Tensor:
         if isinstance(array, Tensor):
             device = array.device if device is None else device
             dtype = array.dtype if dtype is None else dtype
-            if device == array.device and dtype == array.detype:
-                shared_data = array.realize_data()
+            if device == array.device and dtype == array.dtype:
+                underlying_data = array.underlying_data
             # TODO: _array_from_numpy should be in NDArray
             else:
-                shared_data = Tensor._array_from_numpy(
+                underlying_data = Tensor._array_from_numpy(
                     array.numpy(), device=device, dtype=dtype
                 )
         
         else:
             device = device if device else cpu()
-            shared_data = Tensor._array_from_numpy(array, device=device, dtype=dtype)
+            underlying_data = Tensor._array_from_numpy(array, device=device, dtype=dtype)
         
-        self._init(None, [], shared_data=shared_data, requires_grad=requires_grad)
+        self._init(None, [], underlying_data=underlying_data, requires_grad=requires_grad)
     
-    def _init(self, op: Optional[Op], inputs: List['Tensor'], *, 
-              num_outputs: int = 1, shared_data = None, requires_grad: Optional[bool] = None):
+    def _init(self, 
+              op: Optional[Op], 
+              inputs: List['Tensor'], 
+              *, 
+              num_outputs: int = 1, 
+              underlying_data: Optional[NDArray] = None, 
+              requires_grad: Optional[bool] = None
+        ) -> None:
         global TENSOR_COUNTER
         TENSOR_COUNTER += 1
         if requires_grad is None:
@@ -75,12 +80,16 @@ class Tensor:
         self.op = op
         self.inputs = inputs
         self.num_outputs = num_outputs
-        self.shared_data = shared_data
+        self.underlying_data = underlying_data
         self.requires_grad = requires_grad
+        self.grad = None
+    
+    def underly(self) -> NDArray:
+        return self.underlying_data
         
     
     @staticmethod
-    def _array_from_numpy(numpy_array: numpy.ndarray, device, dtype):
+    def _array_from_numpy(numpy_array: numpy.ndarray, device, dtype) -> NDArray:
         if array_api is numpy:
             return numpy.array(numpy_array, dtype=dtype)
         return array_api.array(numpy_array, device=device, dtype=dtype)
@@ -89,10 +98,14 @@ class Tensor:
     def make_from_op(op: Op, inputs: List['Tensor']) -> 'Tensor':
         tensor = Tensor.__new__(Tensor)
         tensor._init(op, inputs)
-        if not LAZY_MODE:
-            if not tensor.requires_grad:
-                return tensor.detach()
-            tensor.realize_data()
+        
+        tensor.underlying_data = tensor.op.compute(
+            *[x.underly() for x in tensor.inputs]
+        )
+        
+        if not tensor.requires_grad:
+            return tensor.detach()
+        
         return tensor
     
     @staticmethod
@@ -103,52 +116,46 @@ class Tensor:
         tensor._init(
             None,
             [],
-            shared_data=data if not isinstance(data, Tensor) else data.realize_data(),
+            underlying_data=data,
             requires_grad=requires_grad,
         )
-        return tensor    
-
-    
-    def realize_data(self) -> NDArray:
-        if self.shared_data is not None:
-            return self.shared_data
-        # if self.data is None, self shouldn't be leaf node which means its op shouldn't be None
-        self.shared_data = self.op.compute(
-            *[x.realize_data() for x in self.inputs]
-        )
-        return self.shared_data
+        return tensor
 
     @property
-    def data(self):
+    def data(self) -> 'Tensor':
+        '''
+        To be consistent with pytorch, this method is used to 'detach' a data,
+        not to get the underlying data
+        the requires_grad would be set to False
+        '''
         return self.detach()
     
     @data.setter
     def data(self, value):
         assert isinstance(value, Tensor)
         assert value.dtype == self.dtype, f'{value.dtype} {self.dtype}'        
-        self.data = value.realize_data() 
+        self.underlying_data = value.underly() 
 
-    def detach(self):
+    def detach(self) -> 'Tensor':
         """Create a new tensor that shares the data but detaches from the graph."""
-        return Tensor.make_const(self.realize_data())
+        return Tensor.make_const(self.underly())
 
     @property
     def shape(self):
-        return self.realize_data().shape
+        return self.underlying_data.shape
     
     @property
     def dtype(self):
-        return self.realize_data().dtype
+        return self.underlying_data.dtype
     
     @property
     def device(self):
-        data = self.realize_data()
         if array_api is numpy:
             return cpu()
-        return data.device
+        return self.underlying_data.device
 
 
-    def backward(self, out_grad=None):
+    def backward(self, out_grad: Optional['Tensor'] = None):
         out_grad = (
             out_grad
             if out_grad
@@ -164,16 +171,15 @@ class Tensor:
         TENSOR_COUNTER -= 1
     
     def __repr__(self) -> str:
-        return f'pytensor.Tensor({str(self.realize_data())})'
+        return f'pytensor.Tensor({str(self.underlying_data)})'
     
     def __str__(self) -> str:
-        return self.realize_data().__str__()
+        return self.underlying_data.__str__()
     
     def numpy(self):
-        data = self.realize_data()
         if array_api is numpy:
-            return data
-        return data.numpy()
+            return self.underlying_data
+        return self.underlying_data.numpy()
     
 
     def __add__(self, other):
