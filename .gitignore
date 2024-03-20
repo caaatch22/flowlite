@@ -1,7 +1,12 @@
 vscode/
 
+build/
+
 __pycache__
 .pytest_cache
 
 needle/
 tmp.py
+
+flowlite.egg-info/
+dist/
