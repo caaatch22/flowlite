@@ -88,14 +88,14 @@ def batchnorm_running_grad(*shape, iters=10):
     return x.grad.underlying_data
 
 
-def relu_forward(*shape):
-    f = fl.nn.ReLU()
+def relu_forward(*shape, inplace=False):
+    f = fl.nn.ReLU(inplace)
     x = get_tensor(*shape)
     return f(x).underlying_data
 
 
-def relu_backward(*shape):
-    f = fl.nn.ReLU()
+def relu_backward(*shape, inplace=False):
+    f = fl.nn.ReLU(inplace)
     x = get_tensor(*shape)
     (f(x) ** 2).sum().backward()
     return x.grad.underlying_data
@@ -925,11 +925,23 @@ def test_nn_relu_forward_1():
         rtol=1e-5,
         atol=1e-5,
     )
+    np.testing.assert_allclose(
+        relu_forward(2, 2, inplace=True),
+        np.array([[3.35, 4.2], [0.25, 4.5]], dtype=np.float32),
+        rtol=1e-5,
+        atol=1e-5,
+    )
 
 
 def test_nn_relu_backward_1():
     np.testing.assert_allclose(
         relu_backward(3, 2),
+        np.array([[7.5, 2.7], [0.6, 0.2], [0.3, 6.7]], dtype=np.float32),
+        rtol=1e-5,
+        atol=1e-5,
+    )
+    np.testing.assert_allclose(
+        relu_backward(3, 2, inplace=True),
         np.array([[7.5, 2.7], [0.6, 0.2], [0.3, 6.7]], dtype=np.float32),
         rtol=1e-5,
         atol=1e-5,

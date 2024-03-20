@@ -90,9 +90,12 @@ class Linear(Module):
         return out
 
 class ReLU(Module):
-    # TODO: about inplace=True
+    def __init__(self, inplace: bool = False):
+        super().__init__()
+        self.inplace = inplace
+
     def forward(self, x: Tensor) -> Tensor:
-        return ops.relu(x)
+        return ops.relu(x, inplace=self.inplace)
 
 class Sequential(Module):
     def __init__(self, *modules):
