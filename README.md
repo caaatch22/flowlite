@@ -54,5 +54,11 @@ optimizer.step()
 print('Training step complete.')
 ```
 
+## TODO:
+- [ ] add inplace operations, like uniform_ and normal_
+- [ ] support c++ backend, instead of only numpy
+- [ ] support cuda backend
+- [ ] add sequential model like rnn, lstm, gru
+
 ## License
 This project is licensed under the [Apache License (Version 2.0)](https://github.com/caaatch22/flowlite/blob/main/LICENSE).
