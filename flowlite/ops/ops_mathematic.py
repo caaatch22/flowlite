@@ -263,19 +263,24 @@ def exp(a):
 
 #TODO: add inplace=True
 class ReLU(Op):
-    # def __init__(inplace: bool = False):
+    def __init__(self, inplace: bool = False):
+        self.inplace = inplace
 
-    def compute(self, a):
-        out = a.copy()
+    def compute(self, x: NDArray) -> NDArray:
+        if self.inplace:
+            x[x < 0] = 0
+            return x
+
+        out = x.copy()
         out[out < 0] = 0
         return out
 
-    def gradient(self, out_grad, node):
+    def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         out = node.underly().copy()
         out[out > 0] = 1
         out[out <= 0] = 0
         return out_grad * Tensor(out)
 
 
-def relu(a):
-    return ReLU()(a)
+def relu(x, inplace: bool = False):
+    return ReLU(inplace)(x)
