@@ -171,10 +171,13 @@ class Tensor:
         TENSOR_COUNTER -= 1
     
     def __repr__(self) -> str:
-        return f'pytensor.Tensor({str(self.underlying_data)}, requires_grad={self.requires_grad})'
+        s = f'fl.Tensor(\n{str(self.underlying_data)})'
+        if self.requires_grad:
+            s += ', requires_grad=True'
+        return s
     
     def __str__(self) -> str:
-        return self.underlying_data.__str__()
+        return self.__repr__()
     
     def numpy(self):
         if array_api is numpy:
