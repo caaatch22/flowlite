@@ -175,9 +175,9 @@ def test_matmul_forward():
     )
 
 
-def test_summation_forward():
+def test_sum_forward():
     np.testing.assert_allclose(
-        pt.summation(
+        pt.sum(
             pt.Tensor(
                 [
                     [2.2, 4.35, 1.4, 0.3, 2.65],
@@ -189,7 +189,7 @@ def test_summation_forward():
         np.array(30.5),
     )
     np.testing.assert_allclose(
-        pt.summation(
+        pt.sum(
             pt.Tensor(
                 [
                     [1.05, 2.55, 1.0],
@@ -199,14 +199,14 @@ def test_summation_forward():
                     [1.8, 4.55, 2.3],
                 ]
             ),
-            axes=1,
+            dim=1,
         ).numpy(),
         np.array([4.6, 9.25, 7.5, 7.9, 8.65]),
     )
     np.testing.assert_allclose(
-        pt.summation(
+        pt.sum(
             pt.Tensor([[1.5, 3.85, 3.45], [1.35, 1.3, 0.65], [2.6, 4.55, 0.25]]),
-            axes=0,
+            dim=0,
         ).numpy(),
         np.array([5.45, 9.7, 4.35]),
     )
@@ -291,12 +291,12 @@ def test_negate_forward():
 
 def test_transpose_forward():
     np.testing.assert_allclose(
-        pt.transpose(pt.Tensor([[[1.95]], [[2.7]], [[3.75]]]), axes=(1, 2)).numpy(),
+        pt.transpose(pt.Tensor([[[1.95]], [[2.7]], [[3.75]]]), dim0=1, dim1=2).numpy(),
         np.array([[[1.95]], [[2.7]], [[3.75]]]),
     )
     np.testing.assert_allclose(
         pt.transpose(
-            pt.Tensor([[[[0.95]]], [[[2.55]]], [[[0.45]]]]), axes=(2, 3)
+            pt.Tensor([[[[0.95]]], [[[2.55]]], [[[0.45]]]]), dim0=1, dim1=2
         ).numpy(),
         np.array([[[[0.95]]], [[[2.55]]], [[[0.45]]]]),
     )
@@ -308,7 +308,7 @@ def test_transpose_forward():
                     [[[1.45, 3.05], [2.25, 0.1]], [[0.45, 4.75], [1.5, 1.8]]],
                     [[[1.5, 4.65], [1.35, 2.7]], [[2.0, 1.65], [2.05, 1.2]]],
                 ]
-            )
+            ), dim0=2, dim1=3
         ).numpy(),
         np.array(
             [
@@ -319,16 +319,16 @@ def test_transpose_forward():
         ),
     )
     np.testing.assert_allclose(
-        pt.transpose(pt.Tensor([[[2.45]], [[3.5]], [[0.9]]]), axes=(0, 1)).numpy(),
+        pt.transpose(pt.Tensor([[[2.45]], [[3.5]], [[0.9]]]), dim0=0, dim1=1).numpy(),
         np.array([[[2.45], [3.5], [0.9]]]),
     )
     np.testing.assert_allclose(
-        pt.transpose(pt.Tensor([[4.4, 2.05], [1.85, 2.25], [0.15, 1.4]])).numpy(),
+        pt.transpose(pt.Tensor([[4.4, 2.05], [1.85, 2.25], [0.15, 1.4]]), dim0=0, dim1=1).numpy(),
         np.array([[4.4, 1.85, 0.15], [2.05, 2.25, 1.4]]),
     )
     np.testing.assert_allclose(
         pt.transpose(
-            pt.Tensor([[0.05, 3.7, 1.35], [4.45, 3.25, 1.95], [2.45, 4.4, 4.5]])
+            pt.Tensor([[0.05, 3.7, 1.35], [4.45, 3.25, 1.95], [2.45, 4.4, 4.5]]), dim0=0, dim1=1
         ).numpy(),
         np.array([[0.05, 4.45, 2.45], [3.7, 3.25, 4.4], [1.35, 1.95, 4.5]]),
     )
@@ -341,7 +341,7 @@ def test_transpose_forward():
                     [[0.2, 3.35, 3.4], [0.3, 4.85, 4.85], [4.35, 4.25, 3.05]],
                 ]
             ),
-            axes=(0, 1),
+            dim0=0, dim1=1,
         ).numpy(),
         np.array(
             [
@@ -448,8 +448,8 @@ def test_negate_backward():
 
 
 def test_transpose_backward():
-    gradient_check(pt.transpose, pt.Tensor(np.random.randn(3, 5, 4), requires_grad=True), axes=(1, 2))
-    gradient_check(pt.transpose, pt.Tensor(np.random.randn(3, 5, 4), requires_grad=True), axes=(0, 1))
+    gradient_check(pt.transpose, pt.Tensor(np.random.randn(3, 5, 4), requires_grad=True), dim0=1, dim1=2)
+    gradient_check(pt.transpose, pt.Tensor(np.random.randn(3, 5, 4), requires_grad=True), dim0=1, dim1=2)
 
 
 def test_broadcast_to_backward():
@@ -471,11 +471,11 @@ def test_broadcast_to_backward():
     )
 
 
-def test_summation_backward():
-    gradient_check(pt.summation, pt.Tensor(np.random.randn(5, 4), requires_grad=True), axes=(1,))
-    gradient_check(pt.summation, pt.Tensor(np.random.randn(5, 4), requires_grad=True), axes=(0,))
-    gradient_check(pt.summation, pt.Tensor(np.random.randn(5, 4), requires_grad=True), axes=(0, 1))
-    gradient_check(pt.summation, pt.Tensor(np.random.randn(5, 4, 1), requires_grad=True), axes=(0, 1))
+def test_sum_backward():
+    gradient_check(pt.sum, pt.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(1,))
+    gradient_check(pt.sum, pt.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(0,))
+    gradient_check(pt.sum, pt.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(0, 1))
+    gradient_check(pt.sum, pt.Tensor(np.random.randn(5, 4, 1), requires_grad=True), dim=(0, 1))
 
 
 ##############################################################################
@@ -559,21 +559,21 @@ def test_topo_sort():
 
 def test_compute_gradient():
     gradient_check(
-        lambda A, B, C: pt.summation((A @ B + C) * (A @ B), axes=None),
+        lambda A, B, C: pt.sum((A @ B + C) * (A @ B), dim=None),
         pt.Tensor(np.random.randn(10, 9), requires_grad=True),
         pt.Tensor(np.random.randn(9, 8), requires_grad=True),
         pt.Tensor(np.random.randn(10, 8), requires_grad=True),
         backward=True,
     )
     gradient_check(
-        lambda A, B: pt.summation(pt.broadcast_to(A, shape=(10, 9)) * B, axes=None),
+        lambda A, B: pt.sum(pt.broadcast_to(A, shape=(10, 9)) * B, dim=None),
         pt.Tensor(np.random.randn(10, 1), requires_grad=True),
         pt.Tensor(np.random.randn(10, 9), requires_grad=True),
         backward=True,
     )
     gradient_check(
-        lambda A, B, C: pt.summation(
-            pt.reshape(A, shape=(10, 10)) @ B / 5 + C, axes=None
+        lambda A, B, C: pt.sum(
+            pt.reshape(A, shape=(10, 10)) @ B / 5 + C, dim=None
         ),
         pt.Tensor(np.random.randn(100), requires_grad=True),
         pt.Tensor(np.random.randn(10, 5), requires_grad=True),

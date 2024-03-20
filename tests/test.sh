@@ -67,6 +67,11 @@ test_nn_flatten() {
     python3 -m pytest -v -k "test_nn_flatten"
 }
 
+test_nn_layernorm() {
+    echo "Running thon3 -m pytest -v -k "test_nn_layernorm""
+    python3 -m pytest -v -k "test_nn_layernorm"
+}
+
 test_nn_batchnorm() {
     echo "Running python3 -m pytest -v -k "test_nn_batchnorm""
     python3 -m pytest -v -k "test_nn_batchnorm"
@@ -80,6 +85,42 @@ test_nn_dropout() {
 test_nn_residual() {
     echo "Running python3 -m pytest -v -k "test_nn_residual""
     python3 -m pytest -v -k "test_nn_residual"
+}
+
+test_optim_sgd() {
+    echo "Running python3 -m pytest -v -k "test_optim_sgd""
+    python3 -m pytest -v -k "test_optim_sgd"
+}
+
+test_optim_adam() {
+    echo "Running python3 -m pytest -v -k "test_optim_adam""
+    python3 -m pytest -v -k "test_optim_adam"
+}
+
+
+test_flip_horizontal() {
+    echo "Running python3 -m pytest -v -k "flip_horizontal""
+    python3 -m pytest -v -k "flip_horizontal"
+}
+
+test_random_crop() {
+    echo "Running python3 -m pytest -v -k "random_crop""
+    python3 -m pytest -v -k "random_crop"
+}
+
+test_mnist_dataset() {
+    echo "Running python3 -m pytest -v -k "test_mnist_dataset""
+    python3 -m pytest -v -k "test_mnist_dataset"
+}
+
+test_dataloader() {
+    echo "Running python3 -m pytest -v -k "test_dataloader""
+    python3 -m pytest -v -k "test_dataloader"
+}
+
+test_mlp() {
+    echo "Running python3 -m pytest -v -k "test_mlp""
+    python3 -m pytest -v -k "test_mlp"
 }
 
 if [ $# -eq 0 ]; then

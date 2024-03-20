@@ -6,6 +6,7 @@ import numpy as array_api
 
 class LogSumExp(Op):
     def __init__(self, axes: Optional[tuple] = None):
+        super().__init__()
         self.axes = axes
 
     def compute(self, Z: Tensor):
@@ -31,3 +32,14 @@ class LogSumExp(Op):
 
 def logsumexp(input, axes=None):
     return LogSumExp(axes=axes)(input)
+
+class LogSoftmax(Op):
+    def __init__(self, axes: Optional[tuple] = None):
+        self.axes = axes
+    
+    def compute(self, Z: Tensor) -> Tensor:
+        pass
+        
+
+def logsoftmax(input: Tensor, axes=None):
+    return LogSoftmax(axes=axes)(input)

@@ -5,7 +5,7 @@ from ..autograd import NDArray
 from ..autograd import Op, Tensor
 
 import numpy as array_api
-
+#TODO: for all ops, maybe super().__init()__ in __init__
 class EWiseAdd(Op):
     def compute(self, a: NDArray, b: NDArray) -> NDArray:
         return a + b
@@ -146,7 +146,7 @@ class Reshape(Op):
         self.shape = shape
 
     def compute(self, x: NDArray) -> NDArray:
-        return x.reshape(self.shape)
+        return array_api.reshape(x, self.shape)
 
     def gradient(self, out_grad, node):
         return out_grad.reshape(node.inputs[0].shape)
@@ -183,7 +183,7 @@ class Sum(Op):
         self.keepdim = keepdim
 
     def compute(self, a):
-        return array_api.sum(a, self.dim)
+        return array_api.sum(a, axis=self.dim, keepdims=self.keepdim)
 
     def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         #TODO: not sure for keepdim == True

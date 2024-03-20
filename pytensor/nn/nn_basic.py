@@ -6,6 +6,8 @@ import pytensor.init as init
 
 class Parameter(Tensor):
     """A special kind of tensor that represents parameters."""
+    def __init__(self, x: Tensor):
+        super().__init__(x, requires_grad=True)
 
 
 def _unpack_params(value: object) -> List[Tensor]:
@@ -75,11 +77,12 @@ class Identity(Module):
 class Linear(Module):
     def __init__(self, in_features: int, out_features: int, bias: bool = True, device=None, dtype=None):
         super().__init__()
-        self.weight = Parameter(init.kaiming_uniform(in_features, out_features, requires_grad=True))
+        self.weight = Parameter(init.kaiming_uniform(in_features, out_features))
         if bias:
-            self.bias = Parameter(init.kaiming_uniform(out_features, 1, requires_grad=True).transpose(0, 1))
+            self.bias = Parameter(init.kaiming_uniform(out_features, 1).transpose(0, 1))
         else:
             bias = None
+        # print(f'weight : {self.weight}, {self.weight.requires_grad}')
     
     def forward(self, x: Tensor) -> Tensor:
         out = x @ self.weight
@@ -95,11 +98,11 @@ class ReLU(Module):
 class Sequential(Module):
     def __init__(self, *modules):
         super().__init__()
-        self.module = modules
+        self.modules = modules
 
     def forward(self, x: Tensor) -> Tensor:
         from functools import reduce
-        return reduce(lambda out, module: module(out), self.module, x)
+        return reduce(lambda out, module: module(out), self.modules, x)
 
 class Flatten(Module):
     def forward(self, x: Tensor) -> Tensor:
@@ -132,24 +135,47 @@ class Dropout(Module):
         else:
             return x
 
+#TODO: all the device and dtype parameters in bn and ln
 class BatchNorm1d(Module):
     def __init__(self, num_features: int, eps=1e-5, momentum=0.1, device=None, dtype=None):
         super().__init__()
-        self.num_features = num_features
         self.eps = eps
         self.momentum = momentum
         
-        self.weight = Parameter(init.ones(num_features, requires_grad=True))
-        self.bias = Parameter(init.zeros(num_features, requires_grad=True))
+        self.weight = Parameter(init.ones(num_features))
+        self.bias = Parameter(init.zeros(num_features))
         self.running_mean = init.zeros(num_features)
         self.running_var = init.ones(num_features)
-        
-    def forward(x: Tensor) -> Tensor:
+    
+    def forward(self, x: Tensor) -> Tensor:
         # x: (batch_size, C) C is #feature or #channels
-        pass
+        if self.training:
+            mean = x.sum(dim=0, keepdim=True).broadcast_to(x.shape) / x.shape[0]
+            var = ((x - mean)**2).sum(dim=0, keepdim=True).broadcast_to(x.shape) / x.shape[0]
+            #TODO: not to * mean.underly()[0]
+            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean.underly()[0]
+            self.running_var = (1 - self.momentum) * self.running_var + self.momentum * var.underly()[0]
+            norm = (x - mean) / ((var + self.eps) ** 0.5)
+            #TODO: auto broadcast_to support in numpy but not in our implemented NDArray
+            return self.weight.broadcast_to(x.shape) * norm + self.bias.broadcast_to(x.shape)
+        else:
+            norm = (x - self.running_mean.broadcast_to(x.shape)) / ((self.running_var.broadcast_to(x.shape) + self.eps) ** 0.5)
+            return self.weight.broadcast_to(x.shape) * norm + self.bias.broadcast_to(x.shape)
 
 class LayerNorm1d(Module):
-    pass
+    def __init__(self, num_features: int, eps=1e-5, device=None, dtype=None):
+        super().__init__()
+        self.eps = eps
+        
+        self.weight = Parameter(init.ones(num_features))
+        self.bias = Parameter(init.zeros(num_features))
+
+    def forward(self, x: Tensor) -> Tensor:
+        # x: (batch_size, C)
+        mean = x.sum(dim=1, keepdim=True).broadcast_to(x.shape) / x.shape[1]
+        var = ((x - mean)**2).sum(dim=1, keepdim=True).broadcast_to(x.shape) / x.shape[1]
+        norm = (x - mean) / ((var + self.eps) ** 0.5)
+        return self.weight.broadcast_to(x.shape) * norm + self.bias.broadcast_to(x.shape)
 
 class Residual(Module):
     def __init__(self, fn: Module):

@@ -65,7 +65,7 @@ def softmax_loss(Z, y_one_hot) -> pt.Tensor(np.float32):
         Average softmax loss over the sample. (pt.Tensor[np.float32])
     """
     ### BEGIN YOUR SOLUTION
-    return ((-y_one_hot * Z).sum() + pt.log(pt.exp(Z).sum(axes=1)).sum()) / Z.shape[0]
+    return ((-y_one_hot * Z).sum() + pt.log(pt.exp(Z).sum(dim=1)).sum()) / Z.shape[0]
     ### END YOUR SOLUTION
 
 
