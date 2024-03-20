@@ -171,7 +171,7 @@ class Tensor:
         TENSOR_COUNTER -= 1
     
     def __repr__(self) -> str:
-        return f'pytensor.Tensor({str(self.underlying_data)})'
+        return f'pytensor.Tensor({str(self.underlying_data)}, requires_grad={self.requires_grad})'
     
     def __str__(self) -> str:
         return self.underlying_data.__str__()

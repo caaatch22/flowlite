@@ -82,7 +82,6 @@ class Linear(Module):
             self.bias = Parameter(init.kaiming_uniform(out_features, 1).transpose(0, 1))
         else:
             bias = None
-        # print(f'weight : {self.weight}, {self.weight.requires_grad}')
     
     def forward(self, x: Tensor) -> Tensor:
         out = x @ self.weight
