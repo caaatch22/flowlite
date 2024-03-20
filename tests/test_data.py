@@ -1,11 +1,11 @@
 import sys
 
-sys.path.append("./pytensor")
-import pytensor as pt
+sys.path.append("./flowlite")
+import flowlite as fl
 import numpy as np
 
 def test_flip_horizontal():
-    tform = pt.data.RandomFlipHorizontal()
+    tform = fl.data.RandomFlipHorizontal()
     np.random.seed(0)
     a = np.array(
         [
@@ -1425,7 +1425,7 @@ def test_flip_horizontal():
 # ----------------------------------------------------------------------------
 
 def test_random_crop():
-    tform = pt.data.RandomCrop(2)
+    tform = fl.data.RandomCrop(2)
     np.random.seed(0)
     a = np.array(
         [
@@ -2185,7 +2185,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(4)
+    tform = fl.data.RandomCrop(4)
     np.random.seed(0)
     a = np.array(
         [
@@ -3023,7 +3023,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(4)
+    tform = fl.data.RandomCrop(4)
     np.random.seed(0)
     a = np.array(
         [
@@ -5075,7 +5075,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(4)
+    tform = fl.data.RandomCrop(4)
     np.random.seed(0)
     a = np.array(
         [
@@ -5362,7 +5362,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(8)
+    tform = fl.data.RandomCrop(8)
     np.random.seed(0)
     a = np.array(
         [
@@ -5682,7 +5682,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(1)
+    tform = fl.data.RandomCrop(1)
     np.random.seed(0)
     a = np.array(
         [
@@ -5995,7 +5995,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(2)
+    tform = fl.data.RandomCrop(2)
     np.random.seed(0)
     a = np.array(
         [
@@ -6229,7 +6229,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(1)
+    tform = fl.data.RandomCrop(1)
     np.random.seed(0)
     a = np.array(
         [
@@ -9813,7 +9813,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(5)
+    tform = fl.data.RandomCrop(5)
     np.random.seed(0)
     a = np.array(
         [
@@ -10209,7 +10209,7 @@ def test_random_crop():
     )
     np.testing.assert_allclose(tform(a), b)
 
-    tform = pt.data.RandomCrop(8)
+    tform = fl.data.RandomCrop(8)
     np.random.seed(0)
     a = np.array(
         [
@@ -10624,7 +10624,7 @@ def test_random_crop():
 
 def test_mnist_dataset():
     # Test dataset sizing
-    mnist_train_dataset = pt.data.MNISTDataset(
+    mnist_train_dataset = fl.data.MNISTDataset(
         "data/train-images-idx3-ubyte.gz", "data/train-labels-idx1-ubyte.gz"
     )
     assert len(mnist_train_dataset) == 60000
@@ -10658,7 +10658,7 @@ def test_mnist_dataset():
     np.testing.assert_allclose(sample_norms, compare_against)
     np.testing.assert_allclose(sample_labels, compare_labels)
 
-    mnist_train_dataset = pt.data.MNISTDataset(
+    mnist_train_dataset = fl.data.MNISTDataset(
         "data/t10k-images-idx3-ubyte.gz", "data/t10k-labels-idx1-ubyte.gz"
     )
     assert len(mnist_train_dataset) == 10000
@@ -10685,8 +10685,8 @@ def test_mnist_dataset():
 
     # test a transform
     np.random.seed(0)
-    tforms = [pt.data.RandomCrop(28), pt.data.RandomFlipHorizontal()]
-    mnist_train_dataset = pt.data.MNISTDataset(
+    tforms = [fl.data.RandomCrop(28), fl.data.RandomFlipHorizontal()]
+    mnist_train_dataset = fl.data.MNISTDataset(
         "data/train-images-idx3-ubyte.gz",
         "data/train-labels-idx1-ubyte.gz",
         transforms=tforms,
@@ -10713,8 +10713,8 @@ def test_mnist_dataset():
     np.testing.assert_allclose(sample_labels, compare_labels)
 
     # test a transform
-    tforms = [pt.data.RandomCrop(12), pt.data.RandomFlipHorizontal(0.4)]
-    mnist_train_dataset = pt.data.MNISTDataset(
+    tforms = [fl.data.RandomCrop(12), fl.data.RandomFlipHorizontal(0.4)]
+    mnist_train_dataset = fl.data.MNISTDataset(
         "data/train-images-idx3-ubyte.gz",
         "data/train-labels-idx1-ubyte.gz",
         transforms=tforms,
@@ -10752,10 +10752,10 @@ def test_mnist_dataset():
 
 def test_dataloader_mnist():
     batch_size = 1
-    mnist_train_dataset = pt.data.MNISTDataset(
+    mnist_train_dataset = fl.data.MNISTDataset(
         "data/train-images-idx3-ubyte.gz", "data/train-labels-idx1-ubyte.gz"
     )
-    mnist_train_dataloader = pt.data.DataLoader(
+    mnist_train_dataloader = fl.data.DataLoader(
         dataset=mnist_train_dataset, batch_size=batch_size, shuffle=False
     )
 
@@ -10769,10 +10769,10 @@ def test_dataloader_mnist():
         np.testing.assert_allclose(batch_y, truth_y)
 
     batch_size = 5
-    mnist_test_dataset = pt.data.MNISTDataset(
+    mnist_test_dataset = fl.data.MNISTDataset(
         "data/t10k-images-idx3-ubyte.gz", "data/t10k-labels-idx1-ubyte.gz"
     )
-    mnist_test_dataloader = pt.data.DataLoader(
+    mnist_test_dataloader = fl.data.DataLoader(
         dataset=mnist_test_dataset, batch_size=batch_size, shuffle=False
     )
 
@@ -10785,10 +10785,10 @@ def test_dataloader_mnist():
         np.testing.assert_allclose(truth_x, batch_x)
         np.testing.assert_allclose(batch_y, truth_y)
 
-    noshuf = bat9 = pt.data.DataLoader(
+    noshuf = bat9 = fl.data.DataLoader(
         dataset=mnist_test_dataset, batch_size=10, shuffle=False
     )
-    shuf = bat9 = pt.data.DataLoader(
+    shuf = bat9 = fl.data.DataLoader(
         dataset=mnist_test_dataset, batch_size=10, shuffle=True
     )
     diff = False
@@ -10803,8 +10803,8 @@ def test_dataloader_ndarray():
     for batch_size in [1, 10, 100]:
         np.random.seed(0)
 
-        train_dataset = pt.data.NDArrayDataset(np.random.rand(100, 10, 10))
-        train_dataloader = pt.data.DataLoader(
+        train_dataset = fl.data.NDArrayDataset(np.random.rand(100, 10, 10))
+        train_dataloader = fl.data.DataLoader(
             dataset=train_dataset, batch_size=batch_size, shuffle=False
         )
 
@@ -10817,13 +10817,13 @@ def test_dataloader_ndarray():
 
     batch_size = 1
     np.random.seed(0)
-    train_dataset = pt.data.NDArrayDataset(
+    train_dataset = fl.data.NDArrayDataset(
         np.arange(
             100,
         )
     )
     train_dataloader = iter(
-        pt.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+        fl.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     )
 
     elements = np.array([next(train_dataloader)[0].numpy().item() for _ in range(10)])
@@ -10832,13 +10832,13 @@ def test_dataloader_ndarray():
     )
 
     batch_size = 10
-    train_dataset = pt.data.NDArrayDataset(
+    train_dataset = fl.data.NDArrayDataset(
         np.arange(
             100,
         )
     )
     train_dataloader = iter(
-        pt.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+        fl.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     )
 
     elements = np.array(

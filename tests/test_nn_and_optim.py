@@ -1,9 +1,9 @@
 import sys
 
-sys.path.append("./pytensor")
+sys.path.append("./flowlite")
 import numpy as np
-import pytensor as pt
-import pytensor.nn as nn
+import flowlite as fl
+import flowlite.nn as nn
 
 sys.path.append("./apps")
 from mlp_resnet import *
@@ -14,12 +14,12 @@ from mlp_resnet import *
 
 def get_tensor(*shape, entropy=1):
     np.random.seed(np.prod(shape) * len(shape) * entropy)
-    return pt.Tensor(np.random.randint(0, 100, size=shape) / 20, dtype="float32", requires_grad=True)
+    return fl.Tensor(np.random.randint(0, 100, size=shape) / 20, dtype="float32", requires_grad=True)
 
 
 def get_int_tensor(*shape, low=0, high=10, entropy=1):
     np.random.seed(np.prod(shape) * len(shape) * entropy)
-    return pt.Tensor(np.random.randint(low, high, size=shape))
+    return fl.Tensor(np.random.randint(low, high, size=shape))
 
 
 def check_prng(*shape):
@@ -32,7 +32,7 @@ def check_prng(*shape):
 
 def batchnorm_forward(*shape, affine=False):
     x = get_tensor(*shape)
-    bn = pt.nn.BatchNorm1d(shape[1])
+    bn = fl.nn.BatchNorm1d(shape[1])
     if affine:
         bn.weight.data = get_tensor(shape[1], entropy=42)
         bn.bias.data = get_tensor(shape[1], entropy=1337)
@@ -41,7 +41,7 @@ def batchnorm_forward(*shape, affine=False):
 
 def batchnorm_backward(*shape, affine=False):
     x = get_tensor(*shape)
-    bn = pt.nn.BatchNorm1d(shape[1])
+    bn = fl.nn.BatchNorm1d(shape[1])
     if affine:
         bn.weight.data = get_tensor(shape[1], entropy=42)
         bn.bias.data = get_tensor(shape[1], entropy=1337)
@@ -51,19 +51,19 @@ def batchnorm_backward(*shape, affine=False):
 
 def flatten_forward(*shape):
     x = get_tensor(*shape)
-    tform = pt.nn.Flatten()
+    tform = fl.nn.Flatten()
     return tform(x).underlying_data
 
 
 def flatten_backward(*shape):
     x = get_tensor(*shape)
-    tform = pt.nn.Flatten()
+    tform = fl.nn.Flatten()
     (tform(x) ** 2).sum().backward()
     return x.grad.underlying_data
 
 
 def batchnorm_running_mean(*shape, iters=10):
-    bn = pt.nn.BatchNorm1d(shape[1])
+    bn = fl.nn.BatchNorm1d(shape[1])
     for i in range(iters):
         x = get_tensor(*shape, entropy=i)
         y = bn(x)
@@ -71,7 +71,7 @@ def batchnorm_running_mean(*shape, iters=10):
 
 
 def batchnorm_running_var(*shape, iters=10):
-    bn = pt.nn.BatchNorm1d(shape[1])
+    bn = fl.nn.BatchNorm1d(shape[1])
     for i in range(iters):
         x = get_tensor(*shape, entropy=i)
         y = bn(x)
@@ -79,7 +79,7 @@ def batchnorm_running_var(*shape, iters=10):
 
 
 def batchnorm_running_grad(*shape, iters=10):
-    bn = pt.nn.BatchNorm1d(shape[1])
+    bn = fl.nn.BatchNorm1d(shape[1])
     for i in range(iters):
         x = get_tensor(*shape, entropy=i)
         y = bn(x)
@@ -89,37 +89,37 @@ def batchnorm_running_grad(*shape, iters=10):
 
 
 def relu_forward(*shape):
-    f = pt.nn.ReLU()
+    f = fl.nn.ReLU()
     x = get_tensor(*shape)
     return f(x).underlying_data
 
 
 def relu_backward(*shape):
-    f = pt.nn.ReLU()
+    f = fl.nn.ReLU()
     x = get_tensor(*shape)
     (f(x) ** 2).sum().backward()
     return x.grad.underlying_data
 
 
 def layernorm_forward(shape, dim):
-    f = pt.nn.LayerNorm1d(dim)
+    f = fl.nn.LayerNorm1d(dim)
     x = get_tensor(*shape)
     return f(x).underlying_data
 
 
 def layernorm_backward(shape, dims):
-    f = pt.nn.LayerNorm1d(dims)
+    f = fl.nn.LayerNorm1d(dims)
     x = get_tensor(*shape)
     (f(x) ** 4).sum().backward()
     return x.grad.underlying_data
 
 def logsoftmax_forward(shape, mult=1.0):
     x = get_tensor(*shape) * mult
-    return pt.ops.logsoftmax(x).underlying_data
+    return fl.ops.logsoftmax(x).underlying_data
 
 def logsoftmax_backward(shape, mult=1.0):
     x = get_tensor(*shape)
-    y = pt.ops.logsoftmax(x * mult)
+    y = fl.ops.logsoftmax(x * mult)
     z = (y**2).sum()
     z.backward()
     return x.grad.underlying_data
@@ -127,14 +127,14 @@ def logsoftmax_backward(shape, mult=1.0):
 def softmax_loss_forward(rows, classes):
     x = get_tensor(rows, classes)
     y = get_int_tensor(rows, low=0, high=classes)
-    f = pt.nn.CrossEntropyLoss()
+    f = fl.nn.CrossEntropyLoss()
     return np.array(f(x, y).underlying_data)
 
 
 def softmax_loss_backward(rows, classes):
     x = get_tensor(rows, classes)
     y = get_int_tensor(rows, low=0, high=classes)
-    f = pt.nn.CrossEntropyLoss()
+    f = fl.nn.CrossEntropyLoss()
     loss = f(x, y)
     loss.backward()
     return x.grad.underlying_data
@@ -142,7 +142,7 @@ def softmax_loss_backward(rows, classes):
 
 def linear_forward(lhs_shape, rhs_shape):
     np.random.seed(199)
-    f = pt.nn.Linear(*lhs_shape)
+    f = fl.nn.Linear(*lhs_shape)
     f.bias.data = get_tensor(lhs_shape[-1])
     x = get_tensor(*rhs_shape)
     return f(x).underlying_data
@@ -150,7 +150,7 @@ def linear_forward(lhs_shape, rhs_shape):
 
 def linear_backward(lhs_shape, rhs_shape):
     np.random.seed(199)
-    f = pt.nn.Linear(*lhs_shape)
+    f = fl.nn.Linear(*lhs_shape)
     f.bias.data = get_tensor(lhs_shape[-1])
     x = get_tensor(*rhs_shape)
     (f(x) ** 2).sum().backward()
@@ -191,7 +191,7 @@ def residual_backward(shape=(5, 5)):
     return x.grad.underlying_data
 
 
-def learn_model_1d(feature_size, nclasses, _model, optimizer, epochs=1, **kwargs):
+def learn_model_1d(feature_size, nclasses, _model, oflimizer, epochs=1, **kwargs):
     np.random.seed(42)
     model = _model([])
     X = get_tensor(1024, feature_size).underlying_data
@@ -199,33 +199,33 @@ def learn_model_1d(feature_size, nclasses, _model, optimizer, epochs=1, **kwargs
     m = X.shape[0]
     batch = 32
     loss_func = nn.CrossEntropyLoss()
-    opt = optimizer(model.parameters(), **kwargs)
+    ofl = oflimizer(model.parameters(), **kwargs)
 
     for _ in range(epochs):
         for i, (X0, y0) in enumerate(
             zip(np.array_split(X, m // batch), np.array_split(y, m // batch))
         ):
-            opt.zero_grad()
-            X0, y0 = pt.Tensor(X0, dtype="float32"), pt.Tensor(y0)
+            ofl.zero_grad()
+            X0, y0 = fl.Tensor(X0, dtype="float32"), fl.Tensor(y0)
             out = model(X0)
             loss = loss_func(out, y0)
             loss.backward()
-            # Opt should not change gradients.
+            # Ofl should not change gradients.
             grad_before = model.parameters()[0].grad.detach().underlying_data
-            opt.step()
+            ofl.step()
             grad_after = model.parameters()[0].grad.detach().underlying_data
             np.testing.assert_allclose(
                 grad_before,
                 grad_after,
                 rtol=1e-5,
                 atol=1e-5,
-                err_msg="Optim should not modify gradients in place",
+                err_msg="Oflim should not modify gradients in place",
             )
 
     return np.array(loss.underlying_data)
 
 
-def learn_model_1d_eval(feature_size, nclasses, _model, optimizer, epochs=1, **kwargs):
+def learn_model_1d_eval(feature_size, nclasses, _model, oflimizer, epochs=1, **kwargs):
     np.random.seed(42)
     model = _model([])
     X = get_tensor(1024, feature_size).underlying_data
@@ -234,20 +234,20 @@ def learn_model_1d_eval(feature_size, nclasses, _model, optimizer, epochs=1, **k
     batch = 32
 
     loss_func = nn.CrossEntropyLoss()
-    opt = optimizer(model.parameters(), **kwargs)
+    ofl = oflimizer(model.parameters(), **kwargs)
 
     for i, (X0, y0) in enumerate(
         zip(np.array_split(X, m // batch), np.array_split(y, m // batch))
     ):
-        opt.zero_grad()
-        X0, y0 = pt.Tensor(X0, dtype="float32"), pt.Tensor(y0)
+        ofl.zero_grad()
+        X0, y0 = fl.Tensor(X0, dtype="float32"), fl.Tensor(y0)
         out = model(X0)
         loss = loss_func(out, y0)
         loss.backward()
-        opt.step()
+        ofl.step()
 
-    X_test = pt.Tensor(get_tensor(batch, feature_size).underlying_data)
-    y_test = pt.Tensor(
+    X_test = fl.Tensor(get_tensor(batch, feature_size).underlying_data)
+    y_test = fl.Tensor(
         get_int_tensor(batch, low=0, high=nclasses).underlying_data.astype(np.uint8)
     )
 
@@ -264,23 +264,23 @@ def init_a_tensor_of_shape(shape, init_fn):
 
 
 def global_tensor_count():
-    return np.array(pt.autograd.TENSOR_COUNTER)
+    return np.array(fl.autograd.TENSOR_COUNTER)
 
 
 def nn_linear_weight_init():
     np.random.seed(1337)
-    f = pt.nn.Linear(7, 4)
+    f = fl.nn.Linear(7, 4)
     f.weight.underlying_data
     return f.weight.underlying_data
 
 
 def nn_linear_bias_init():
     np.random.seed(1337)
-    f = pt.nn.Linear(7, 4)
+    f = fl.nn.Linear(7, 4)
     return f.bias.underlying_data
 
 
-class UselessModule(pt.nn.Module):
+class UselessModule(fl.nn.Module):
     def __init__(self):
         super().__init__()
         self.stuff = {
@@ -339,12 +339,12 @@ def power_scalar_backward(shape, power=2):
 
 def logsumexp_forward(shape, axes):
     x = get_tensor(*shape)
-    return (pt.ops.logsumexp(x, axes=axes)).underlying_data
+    return (fl.ops.logsumexp(x, axes=axes)).underlying_data
 
 
 def logsumexp_backward(shape, axes):
     x = get_tensor(*shape)
-    y = (pt.ops.logsumexp(x, axes=axes) ** 2).sum()
+    y = (fl.ops.logsumexp(x, axes=axes) ** 2).sum()
     y.backward()
     return x.grad.underlying_data
 
@@ -376,7 +376,7 @@ def residual_block_num_params(dim, hidden_dim, norm):
 
 def residual_block_forward(dim, hidden_dim, norm, drop_prob):
     np.random.seed(2)
-    input_tensor = pt.Tensor(np.random.randn(1, dim))
+    input_tensor = fl.Tensor(np.random.randn(1, dim))
     output_tensor = ResidualBlock(dim, hidden_dim, norm, drop_prob)(input_tensor)
     return output_tensor.numpy()
 
@@ -388,32 +388,32 @@ def mlp_resnet_num_params(dim, hidden_dim, num_blocks, num_classes, norm):
 
 def mlp_resnet_forward(dim, hidden_dim, num_blocks, num_classes, norm, drop_prob):
     np.random.seed(4)
-    input_tensor = pt.Tensor(np.random.randn(2, dim), dtype=np.float32)
+    input_tensor = fl.Tensor(np.random.randn(2, dim), dtype=np.float32)
     output_tensor = MLPResNet(
         dim, hidden_dim, num_blocks, num_classes, norm, drop_prob
     )(input_tensor)
     return output_tensor.numpy()
 
 
-def train_epoch_1(hidden_dim, batch_size, optimizer, **kwargs):
+def train_epoch_1(hidden_dim, batch_size, oflimizer, **kwargs):
     np.random.seed(1)
-    train_dataset = pt.data.MNISTDataset(
+    train_dataset = fl.data.MNISTDataset(
         "./data/train-images-idx3-ubyte.gz", "./data/train-labels-idx1-ubyte.gz"
     )
-    train_dataloader = pt.data.DataLoader(dataset=train_dataset, batch_size=batch_size)
+    train_dataloader = fl.data.DataLoader(dataset=train_dataset, batch_size=batch_size)
 
     model = MLPResNet(784, hidden_dim)
-    opt = optimizer(model.parameters(), **kwargs)
+    ofl = oflimizer(model.parameters(), **kwargs)
     model.eval()
-    return np.array(epoch(train_dataloader, model, opt))
+    return np.array(epoch(train_dataloader, model, ofl))
 
 
 def eval_epoch_1(hidden_dim, batch_size):
     np.random.seed(1)
-    test_dataset = pt.data.MNISTDataset(
+    test_dataset = fl.data.MNISTDataset(
         "./data/t10k-images-idx3-ubyte.gz", "./data/t10k-labels-idx1-ubyte.gz"
     )
-    test_dataloader = pt.data.DataLoader(
+    test_dataloader = fl.data.DataLoader(
         dataset=test_dataset, batch_size=batch_size, shuffle=False
     )
 
@@ -422,10 +422,10 @@ def eval_epoch_1(hidden_dim, batch_size):
     return np.array(epoch(test_dataloader, model))
 
 
-def train_mnist_1(batch_size, epochs, optimizer, lr, weight_decay, hidden_dim):
+def train_mnist_1(batch_size, epochs, oflimizer, lr, weight_decay, hidden_dim):
     np.random.seed(1)
     out = train_mnist(
-        batch_size, epochs, optimizer, lr, weight_decay, hidden_dim, data_dir="./data"
+        batch_size, epochs, oflimizer, lr, weight_decay, hidden_dim, data_dir="./data"
     )
     return np.array(out)
 
@@ -531,8 +531,8 @@ def test_op_logsumexp_forward_4():
 
 
 def test_op_logsumexp_forward_5():
-    test_data = pt.ops.logsumexp(
-        pt.Tensor(np.array([[1e10, 1e9, 1e8, -10], [1e-10, 1e9, 1e8, -10]])), (0,)
+    test_data = fl.ops.logsumexp(
+        fl.Tensor(np.array([[1e10, 1e9, 1e8, -10], [1e-10, 1e9, 1e8, -10]])), (0,)
     ).numpy()
     np.testing.assert_allclose(
         test_data,
@@ -608,8 +608,8 @@ def test_op_logsumexp_backward_3():
 
 
 def test_op_logsumexp_backward_5():
-    grad_compare = pt.Tensor(np.array([[1e10, 1e9, 1e8, -10], [1e-10, 1e9, 1e8, -10]]), requires_grad=True)
-    test_data = (pt.ops.logsumexp(grad_compare, (0,)) ** 2).sum().backward()
+    grad_compare = fl.Tensor(np.array([[1e10, 1e9, 1e8, -10], [1e-10, 1e9, 1e8, -10]]), requires_grad=True)
+    test_data = (fl.ops.logsumexp(grad_compare, (0,)) ** 2).sum().backward()
     np.testing.assert_allclose(
         grad_compare.grad.underlying_data,
         np.array(
@@ -652,7 +652,7 @@ def test_op_logsumexp_backward_4():
 def test_init_kaiming_uniform():
     np.random.seed(42)
     np.testing.assert_allclose(
-        pt.init.kaiming_uniform(3, 5).numpy(),
+        fl.init.kaiming_uniform(3, 5).numpy(),
         np.array(
             [
                 [-0.35485414, 1.2748126, 0.65617794, 0.27904832, -0.9729262],
@@ -669,7 +669,7 @@ def test_init_kaiming_uniform():
 def test_init_kaiming_normal():
     np.random.seed(42)
     np.testing.assert_allclose(
-        pt.init.kaiming_normal(3, 5).numpy(),
+        fl.init.kaiming_normal(3, 5).numpy(),
         np.array(
             [
                 [0.4055654, -0.11289233, 0.5288355, 1.2435486, -0.19118543],
@@ -686,7 +686,7 @@ def test_init_kaiming_normal():
 def test_init_xavier_uniform():
     np.random.seed(42)
     np.testing.assert_allclose(
-        pt.init.xavier_uniform(3, 5, gain=1.5).numpy(),
+        fl.init.xavier_uniform(3, 5, gain=1.5).numpy(),
         np.array(
             [
                 [-0.32595432, 1.1709901, 0.60273796, 0.25632226, -0.8936898],
@@ -703,7 +703,7 @@ def test_init_xavier_uniform():
 def test_init_xavier_normal():
     np.random.seed(42)
     np.testing.assert_allclose(
-        pt.init.xavier_normal(3, 5, gain=0.33).numpy(),
+        fl.init.xavier_normal(3, 5, gain=0.33).numpy(),
         np.array(
             [
                 [0.08195783, -0.022813609, 0.10686861, 0.25129992, -0.038635306],
@@ -1780,13 +1780,13 @@ def test_nn_flatten_backward_5():
         atol=1e-5,
     )
 
-def test_optim_sgd_vanilla_1():
+def test_oflim_sgd_vanilla_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            pt.optim.SGD,
+            fl.oflim.SGD,
             lr=0.01,
             momentum=0.0,
         ),
@@ -1796,13 +1796,13 @@ def test_optim_sgd_vanilla_1():
     )
 
 
-def test_optim_sgd_momentum_1():
+def test_oflim_sgd_momentum_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            pt.optim.SGD,
+            fl.oflim.SGD,
             lr=0.01,
             momentum=0.9,
         ),
@@ -1812,13 +1812,13 @@ def test_optim_sgd_momentum_1():
     )
 
 
-def test_optim_sgd_weight_decay_1():
+def test_oflim_sgd_weight_decay_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            pt.optim.SGD,
+            fl.oflim.SGD,
             lr=0.01,
             momentum=0.0,
             weight_decay=0.01,
@@ -1829,13 +1829,13 @@ def test_optim_sgd_weight_decay_1():
     )
 
 
-def test_optim_sgd_momentum_weight_decay_1():
+def test_oflim_sgd_momentum_weight_decay_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            pt.optim.SGD,
+            fl.oflim.SGD,
             lr=0.01,
             momentum=0.9,
             weight_decay=0.01,
@@ -1846,7 +1846,7 @@ def test_optim_sgd_momentum_weight_decay_1():
     )
 
 
-def test_optim_sgd_layernorm_residual_1():
+def test_oflim_sgd_layernorm_residual_1():
     nn.LayerNorm1d(8)
     np.testing.assert_allclose(
         learn_model_1d(
@@ -1858,7 +1858,7 @@ def test_optim_sgd_layernorm_residual_1():
                 nn.Residual(nn.Linear(8, 8)),
                 nn.Linear(8, 16),
             ),
-            pt.optim.SGD,
+            fl.oflim.SGD,
             epochs=3,
             lr=0.01,
             weight_decay=0.001,
@@ -1871,20 +1871,20 @@ def test_optim_sgd_layernorm_residual_1():
 
 # We're checking that you have not allocated too many tensors;
 # if this fails, make sure you're using .detach()/.data whenever possible.
-def test_optim_sgd_z_memory_check_1():
+def test_oflim_sgd_z_memory_check_1():
     np.testing.assert_allclose(
         global_tensor_count(), np.array(387), rtol=1e-5, atol=1000
     )
 
 
 
-def test_optim_adam_1():
+def test_oflim_adam_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            pt.optim.Adam,
+            fl.oflim.Adam,
             lr=0.001,
         ),
         np.array(3.703999),
@@ -1893,13 +1893,13 @@ def test_optim_adam_1():
     )
 
 
-def test_optim_adam_weight_decay_1():
+def test_oflim_adam_weight_decay_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            pt.optim.Adam,
+            fl.oflim.Adam,
             lr=0.001,
             weight_decay=0.01,
         ),
@@ -1909,7 +1909,7 @@ def test_optim_adam_weight_decay_1():
     )
 
 
-def test_optim_adam_batchnorm_1():
+def test_oflim_adam_batchnorm_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
@@ -1917,7 +1917,7 @@ def test_optim_adam_batchnorm_1():
             lambda z: nn.Sequential(
                 nn.Linear(64, 32), nn.ReLU(), nn.BatchNorm1d(32), nn.Linear(32, 16)
             ),
-            pt.optim.Adam,
+            fl.oflim.Adam,
             lr=0.001,
             weight_decay=0.001,
         ),
@@ -1927,7 +1927,7 @@ def test_optim_adam_batchnorm_1():
     )
 
 
-def test_optim_adam_batchnorm_eval_mode_1():
+def test_oflim_adam_batchnorm_eval_mode_1():
     np.testing.assert_allclose(
         learn_model_1d_eval(
             64,
@@ -1935,7 +1935,7 @@ def test_optim_adam_batchnorm_eval_mode_1():
             lambda z: nn.Sequential(
                 nn.Linear(64, 32), nn.ReLU(), nn.BatchNorm1d(32), nn.Linear(32, 16)
             ),
-            pt.optim.Adam,
+            fl.oflim.Adam,
             lr=0.001,
             weight_decay=0.001,
         ),
@@ -1945,7 +1945,7 @@ def test_optim_adam_batchnorm_eval_mode_1():
     )
 
 
-def test_optim_adam_layernorm_1():
+def test_oflim_adam_layernorm_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
@@ -1953,7 +1953,7 @@ def test_optim_adam_layernorm_1():
             lambda z: nn.Sequential(
                 nn.Linear(64, 32), nn.ReLU(), nn.LayerNorm1d(32), nn.Linear(32, 16)
             ),
-            pt.optim.Adam,
+            fl.oflim.Adam,
             lr=0.01,
             weight_decay=0.01,
         ),
@@ -1963,13 +1963,13 @@ def test_optim_adam_layernorm_1():
     )
 
 
-def test_optim_adam_weight_decay_bias_correction_1():
+def test_oflim_adam_weight_decay_bias_correction_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            pt.optim.Adam,
+            fl.oflim.Adam,
             lr=0.001,
             weight_decay=0.01,
         ),
@@ -1981,7 +1981,7 @@ def test_optim_adam_weight_decay_bias_correction_1():
 
 # We're checking that you have not allocated too many tensors;
 # if this fails, make sure you're using .detach()/.data whenever possible.
-def test_optim_adam_z_memory_check_1():
+def test_oflim_adam_z_memory_check_1():
     np.testing.assert_allclose(
         global_tensor_count(), np.array(1132), rtol=1e-5, atol=1000
     )
@@ -2116,7 +2116,7 @@ def test_mlp_resnet_forward_2():
 
 def test_mlp_train_epoch_1():
     np.testing.assert_allclose(
-        train_epoch_1(5, 250, pt.optim.Adam, lr=0.01, weight_decay=0.1),
+        train_epoch_1(5, 250, fl.optim.Adam, lr=0.01, weight_decay=0.1),
         np.array([0.675267, 1.84043]),
         rtol=0.0001,
         atol=0.0001,
@@ -2131,7 +2131,7 @@ def test_mlp_eval_epoch_1():
 
 def test_mlp_train_mnist_1():
     np.testing.assert_allclose(
-        train_mnist_1(250, 2, pt.optim.SGD, 0.001, 0.01, 100),
+        train_mnist_1(250, 2, fl.optim.SGD, 0.001, 0.01, 100),
         np.array([0.4875, 1.462595, 0.3245, 1.049429]),
         rtol=0.001,
         atol=0.001,

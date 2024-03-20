@@ -1,7 +1,7 @@
-from typing import List, Callable, Any
-from pytensor.autograd import Tensor
-from pytensor import ops
-import pytensor.init as init
+from typing import List
+from flowlite.autograd import Tensor
+from flowlite import ops
+import flowlite.init as init
 
 
 class Parameter(Tensor):

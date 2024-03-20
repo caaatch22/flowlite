@@ -1,28 +1,28 @@
 import sys
 
-sys.path.append("./pytensor")
+sys.path.append("./flowlite")
 sys.path.append("./apps")
 from simple_ml import *
 import numdifftools as nd
 
 import numpy as np
-import pytensor as pt
+import flowlite as fl
 
 
 ##############################################################################
 ### TESTS CODE FOR forward passes
 def test_power_scalar_forward():
     np.testing.assert_allclose(
-        pt.power_scalar(pt.Tensor([[0.5, 2.0, 3.0]]), scalar=2).numpy(),
+        fl.power_scalar(fl.Tensor([[0.5, 2.0, 3.0]]), scalar=2).numpy(),
         np.array([[0.25, 4.0, 9.0]]),
     )
 
 
 def test_ewisepow_forward():
     np.testing.assert_allclose(
-        pt.power(
-            pt.Tensor([[1.0, 2.0, 3.0]]),
-            pt.Tensor([[0, 0, 2]]),
+        fl.power(
+            fl.Tensor([[1.0, 2.0, 3.0]]),
+            fl.Tensor([[0, 0, 2]]),
         ).numpy(),
         np.array([[1.0, 1.0, 9.0]]),
     )
@@ -30,9 +30,9 @@ def test_ewisepow_forward():
 
 def test_divide_forward():
     np.testing.assert_allclose(
-        pt.divide(
-            pt.Tensor([[3.3, 4.35, 1.2], [2.45, 0.95, 2.55]]),
-            pt.Tensor([[4.6, 4.35, 4.8], [0.65, 0.7, 4.4]]),
+        fl.divide(
+            fl.Tensor([[3.3, 4.35, 1.2], [2.45, 0.95, 2.55]]),
+            fl.Tensor([[4.6, 4.35, 4.8], [0.65, 0.7, 4.4]]),
         ).numpy(),
         np.array(
             [
@@ -45,33 +45,33 @@ def test_divide_forward():
 
 def test_divide_scalar_forward():
     np.testing.assert_allclose(
-        pt.divide_scalar(pt.Tensor([[1.7, 1.45]]), scalar=12).numpy(),
+        fl.divide_scalar(fl.Tensor([[1.7, 1.45]]), scalar=12).numpy(),
         np.array([[0.141666666667, 0.120833333333]]),
     )
 
 
 def test_matmul_forward():
     np.testing.assert_allclose(
-        pt.matmul(
-            pt.Tensor([[4.95, 1.75, 0.25], [4.15, 4.25, 0.3], [0.3, 0.4, 2.1]]),
-            pt.Tensor([[1.35, 2.2, 1.55], [3.85, 4.8, 2.6], [1.15, 0.85, 4.15]]),
+        fl.matmul(
+            fl.Tensor([[4.95, 1.75, 0.25], [4.15, 4.25, 0.3], [0.3, 0.4, 2.1]]),
+            fl.Tensor([[1.35, 2.2, 1.55], [3.85, 4.8, 2.6], [1.15, 0.85, 4.15]]),
         ).numpy(),
         np.array(
             [[13.7075, 19.5025, 13.26], [22.31, 29.785, 18.7275], [4.36, 4.365, 10.22]]
         ),
     )
     np.testing.assert_allclose(
-        pt.matmul(
-            pt.Tensor([[3.8, 0.05], [2.3, 3.35], [1.6, 2.6]]),
-            pt.Tensor([[1.1, 3.5, 3.7], [0.05, 1.25, 1.0]]),
+        fl.matmul(
+            fl.Tensor([[3.8, 0.05], [2.3, 3.35], [1.6, 2.6]]),
+            fl.Tensor([[1.1, 3.5, 3.7], [0.05, 1.25, 1.0]]),
         ).numpy(),
         np.array(
             [[4.1825, 13.3625, 14.11], [2.6975, 12.2375, 11.86], [1.89, 8.85, 8.52]]
         ),
     )
     np.testing.assert_allclose(
-        pt.matmul(
-            pt.Tensor(
+        fl.matmul(
+            fl.Tensor(
                 [
                     [[4.0, 2.15], [1.25, 1.35], [0.75, 1.6]],
                     [[2.9, 2.15], [3.3, 4.1], [2.5, 0.25]],
@@ -81,7 +81,7 @@ def test_matmul_forward():
                     [[0.45, 1.1], [3.15, 0.7], [2.9, 1.95]],
                 ]
             ),
-            pt.Tensor(
+            fl.Tensor(
                 [
                     [[2.7, 4.05, 0.1], [1.75, 3.05, 2.3]],
                     [[0.55, 4.1, 2.3], [4.45, 2.35, 2.55]],
@@ -120,9 +120,9 @@ def test_matmul_forward():
         ),
     )
     np.testing.assert_allclose(
-        pt.matmul(
-            pt.Tensor([[1.9, 1.9], [4.8, 4.9], [3.25, 3.75]]),
-            pt.Tensor(
+        fl.matmul(
+            fl.Tensor([[1.9, 1.9], [4.8, 4.9], [3.25, 3.75]]),
+            fl.Tensor(
                 [
                     [[1.25, 1.8, 1.95], [3.75, 2.85, 2.25]],
                     [[1.75, 2.7, 3.3], [2.95, 1.55, 3.85]],
@@ -151,15 +151,15 @@ def test_matmul_forward():
         ),
     )
     np.testing.assert_allclose(
-        pt.matmul(
-            pt.Tensor(
+        fl.matmul(
+            fl.Tensor(
                 [
                     [[3.4, 2.95], [0.25, 1.95], [4.4, 4.4]],
                     [[0.55, 1.1], [0.75, 1.55], [4.1, 1.2]],
                     [[1.5, 4.05], [1.5, 1.55], [2.3, 1.25]],
                 ]
             ),
-            pt.Tensor([[2.2, 0.65, 2.5], [2.5, 1.3, 0.15]]),
+            fl.Tensor([[2.2, 0.65, 2.5], [2.5, 1.3, 0.15]]),
         ).numpy(),
         np.array(
             [
@@ -177,8 +177,8 @@ def test_matmul_forward():
 
 def test_sum_forward():
     np.testing.assert_allclose(
-        pt.sum(
-            pt.Tensor(
+        fl.sum(
+            fl.Tensor(
                 [
                     [2.2, 4.35, 1.4, 0.3, 2.65],
                     [1.0, 0.85, 2.75, 3.8, 1.55],
@@ -189,8 +189,8 @@ def test_sum_forward():
         np.array(30.5),
     )
     np.testing.assert_allclose(
-        pt.sum(
-            pt.Tensor(
+        fl.sum(
+            fl.Tensor(
                 [
                     [1.05, 2.55, 1.0],
                     [2.95, 3.7, 2.6],
@@ -204,8 +204,8 @@ def test_sum_forward():
         np.array([4.6, 9.25, 7.5, 7.9, 8.65]),
     )
     np.testing.assert_allclose(
-        pt.sum(
-            pt.Tensor([[1.5, 3.85, 3.45], [1.35, 1.3, 0.65], [2.6, 4.55, 0.25]]),
+        fl.sum(
+            fl.Tensor([[1.5, 3.85, 3.45], [1.35, 1.3, 0.65], [2.6, 4.55, 0.25]]),
             dim=0,
         ).numpy(),
         np.array([5.45, 9.7, 4.35]),
@@ -214,7 +214,7 @@ def test_sum_forward():
 
 def test_broadcast_to_forward():
     np.testing.assert_allclose(
-        pt.broadcast_to(pt.Tensor([[1.85, 0.85, 0.6]]), shape=(3, 3, 3)).numpy(),
+        fl.broadcast_to(fl.Tensor([[1.85, 0.85, 0.6]]), shape=(3, 3, 3)).numpy(),
         np.array(
             [
                 [[1.85, 0.85, 0.6], [1.85, 0.85, 0.6], [1.85, 0.85, 0.6]],
@@ -227,8 +227,8 @@ def test_broadcast_to_forward():
 
 def test_reshape_forward():
     np.testing.assert_allclose(
-        pt.reshape(
-            pt.Tensor(
+        fl.reshape(
+            fl.Tensor(
                 [
                     [2.9, 2.0, 2.4],
                     [3.95, 3.95, 4.65],
@@ -260,8 +260,8 @@ def test_reshape_forward():
         ),
     )
     np.testing.assert_allclose(
-        pt.reshape(
-            pt.Tensor(
+        fl.reshape(
+            fl.Tensor(
                 [
                     [[4.1, 4.05, 1.35, 1.65], [3.65, 0.9, 0.65, 4.15]],
                     [[4.7, 1.4, 2.55, 4.8], [2.8, 1.75, 2.8, 0.6]],
@@ -285,24 +285,24 @@ def test_reshape_forward():
 
 def test_negate_forward():
     np.testing.assert_allclose(
-        pt.negate(pt.Tensor([[1.45, 0.55]])).numpy(), np.array([[-1.45, -0.55]])
+        fl.negate(fl.Tensor([[1.45, 0.55]])).numpy(), np.array([[-1.45, -0.55]])
     )
 
 
 def test_transpose_forward():
     np.testing.assert_allclose(
-        pt.transpose(pt.Tensor([[[1.95]], [[2.7]], [[3.75]]]), dim0=1, dim1=2).numpy(),
+        fl.transpose(fl.Tensor([[[1.95]], [[2.7]], [[3.75]]]), dim0=1, dim1=2).numpy(),
         np.array([[[1.95]], [[2.7]], [[3.75]]]),
     )
     np.testing.assert_allclose(
-        pt.transpose(
-            pt.Tensor([[[[0.95]]], [[[2.55]]], [[[0.45]]]]), dim0=1, dim1=2
+        fl.transpose(
+            fl.Tensor([[[[0.95]]], [[[2.55]]], [[[0.45]]]]), dim0=1, dim1=2
         ).numpy(),
         np.array([[[[0.95]]], [[[2.55]]], [[[0.45]]]]),
     )
     np.testing.assert_allclose(
-        pt.transpose(
-            pt.Tensor(
+        fl.transpose(
+            fl.Tensor(
                 [
                     [[[0.4, 0.05], [2.95, 1.3]], [[4.8, 1.2], [1.65, 3.1]]],
                     [[[1.45, 3.05], [2.25, 0.1]], [[0.45, 4.75], [1.5, 1.8]]],
@@ -319,22 +319,22 @@ def test_transpose_forward():
         ),
     )
     np.testing.assert_allclose(
-        pt.transpose(pt.Tensor([[[2.45]], [[3.5]], [[0.9]]]), dim0=0, dim1=1).numpy(),
+        fl.transpose(fl.Tensor([[[2.45]], [[3.5]], [[0.9]]]), dim0=0, dim1=1).numpy(),
         np.array([[[2.45], [3.5], [0.9]]]),
     )
     np.testing.assert_allclose(
-        pt.transpose(pt.Tensor([[4.4, 2.05], [1.85, 2.25], [0.15, 1.4]]), dim0=0, dim1=1).numpy(),
+        fl.transpose(fl.Tensor([[4.4, 2.05], [1.85, 2.25], [0.15, 1.4]]), dim0=0, dim1=1).numpy(),
         np.array([[4.4, 1.85, 0.15], [2.05, 2.25, 1.4]]),
     )
     np.testing.assert_allclose(
-        pt.transpose(
-            pt.Tensor([[0.05, 3.7, 1.35], [4.45, 3.25, 1.95], [2.45, 4.4, 4.5]]), dim0=0, dim1=1
+        fl.transpose(
+            fl.Tensor([[0.05, 3.7, 1.35], [4.45, 3.25, 1.95], [2.45, 4.4, 4.5]]), dim0=0, dim1=1
         ).numpy(),
         np.array([[0.05, 4.45, 2.45], [3.7, 3.25, 4.4], [1.35, 1.95, 4.5]]),
     )
     np.testing.assert_allclose(
-        pt.transpose(
-            pt.Tensor(
+        fl.transpose(
+            fl.Tensor(
                 [
                     [[0.55, 1.8, 0.2], [0.8, 2.75, 3.7], [0.95, 1.4, 0.8]],
                     [[0.75, 1.6, 1.35], [3.75, 4.0, 4.55], [1.85, 2.5, 4.8]],
@@ -372,7 +372,7 @@ def gradient_check(f, *args, tol=1e-6, backward=False, **kwargs):
         out = f(*args, **kwargs)
         computed_grads = [
             x.numpy()
-            for x in out.op.gradient_as_tuple(pt.Tensor(np.ones(out.shape)), out)
+            for x in out.op.gradient_as_tuple(fl.Tensor(np.ones(out.shape)), out)
         ]
     else:
         out = f(*args, **kwargs).sum()
@@ -387,95 +387,95 @@ def gradient_check(f, *args, tol=1e-6, backward=False, **kwargs):
 
 def test_power_scalar_backward():
     gradient_check(
-        pt.power_scalar, pt.Tensor(np.random.randn(5, 4), requires_grad=True), scalar=np.random.randint(1)
+        fl.power_scalar, fl.Tensor(np.random.randn(5, 4), requires_grad=True), scalar=np.random.randint(1)
     )
 
 def test_divide_backward():
     gradient_check(
-        pt.divide,
-        pt.Tensor(np.random.randn(5, 4), requires_grad=True),
-        pt.Tensor(5 + np.random.randn(5, 4), requires_grad=True),
+        fl.divide,
+        fl.Tensor(np.random.randn(5, 4), requires_grad=True),
+        fl.Tensor(5 + np.random.randn(5, 4), requires_grad=True),
     )
 
 
 def test_divide_scalar_backward():
     gradient_check(
-        pt.divide_scalar, 
-        pt.Tensor(np.random.randn(5, 4), requires_grad=True), 
+        fl.divide_scalar, 
+        fl.Tensor(np.random.randn(5, 4), requires_grad=True), 
         scalar=np.random.randn(1)
     )
 
 
 def test_matmul_simple_backward():
     gradient_check(
-        pt.matmul, 
-        pt.Tensor(np.random.randn(5, 4), requires_grad=True), 
-        pt.Tensor(np.random.randn(4, 5), requires_grad=True)
+        fl.matmul, 
+        fl.Tensor(np.random.randn(5, 4), requires_grad=True), 
+        fl.Tensor(np.random.randn(4, 5), requires_grad=True)
     )
 
 
 def test_matmul_batched_backward():
     gradient_check(
-        pt.matmul,
-        pt.Tensor(np.random.randn(6, 6, 5, 4), requires_grad=True),
-        pt.Tensor(np.random.randn(6, 6, 4, 3), requires_grad=True),
+        fl.matmul,
+        fl.Tensor(np.random.randn(6, 6, 5, 4), requires_grad=True),
+        fl.Tensor(np.random.randn(6, 6, 4, 3), requires_grad=True),
     )
     gradient_check(
-        pt.matmul,
-        pt.Tensor(np.random.randn(6, 6, 5, 4), requires_grad=True),
-        pt.Tensor(np.random.randn(4, 3), requires_grad=True),
+        fl.matmul,
+        fl.Tensor(np.random.randn(6, 6, 5, 4), requires_grad=True),
+        fl.Tensor(np.random.randn(4, 3), requires_grad=True),
     )
     gradient_check(
-        pt.matmul,
-        pt.Tensor(np.random.randn(5, 4), requires_grad=True),
-        pt.Tensor(np.random.randn(6, 6, 4, 3), requires_grad=True),
+        fl.matmul,
+        fl.Tensor(np.random.randn(5, 4), requires_grad=True),
+        fl.Tensor(np.random.randn(6, 6, 4, 3), requires_grad=True),
     )
 
 
 def test_reshape_backward():
     gradient_check(
-        pt.reshape, 
-        pt.Tensor(np.random.randn(5, 4), requires_grad=True), 
+        fl.reshape, 
+        fl.Tensor(np.random.randn(5, 4), requires_grad=True), 
         shape=(4, 5)
     )
 
 
 def test_negate_backward():
     gradient_check(
-        pt.negate, 
-        pt.Tensor(np.random.randn(5, 4), requires_grad=True)
+        fl.negate, 
+        fl.Tensor(np.random.randn(5, 4), requires_grad=True)
     )
 
 
 def test_transpose_backward():
-    gradient_check(pt.transpose, pt.Tensor(np.random.randn(3, 5, 4), requires_grad=True), dim0=1, dim1=2)
-    gradient_check(pt.transpose, pt.Tensor(np.random.randn(3, 5, 4), requires_grad=True), dim0=1, dim1=2)
+    gradient_check(fl.transpose, fl.Tensor(np.random.randn(3, 5, 4), requires_grad=True), dim0=1, dim1=2)
+    gradient_check(fl.transpose, fl.Tensor(np.random.randn(3, 5, 4), requires_grad=True), dim0=1, dim1=2)
 
 
 def test_broadcast_to_backward():
-    gradient_check(pt.broadcast_to, pt.Tensor(np.random.randn(3, 1), requires_grad=True), shape=(3, 3))
-    gradient_check(pt.broadcast_to, pt.Tensor(np.random.randn(1, 3), requires_grad=True), shape=(3, 3))
+    gradient_check(fl.broadcast_to, fl.Tensor(np.random.randn(3, 1), requires_grad=True), shape=(3, 3))
+    gradient_check(fl.broadcast_to, fl.Tensor(np.random.randn(1, 3), requires_grad=True), shape=(3, 3))
     gradient_check(
-        pt.broadcast_to,
-        pt.Tensor(np.random.randn(1,), requires_grad=True),
+        fl.broadcast_to,
+        fl.Tensor(np.random.randn(1,), requires_grad=True),
         shape=(3, 3, 3),
     )
-    gradient_check(pt.broadcast_to, 
-                   pt.Tensor(np.random.randn(), requires_grad=True), 
+    gradient_check(fl.broadcast_to, 
+                   fl.Tensor(np.random.randn(), requires_grad=True), 
                    shape=(3, 3, 3)
     )
     gradient_check(
-        pt.broadcast_to, 
-        pt.Tensor(np.random.randn(5, 4, 1), requires_grad=True), 
+        fl.broadcast_to, 
+        fl.Tensor(np.random.randn(5, 4, 1), requires_grad=True), 
         shape=(5, 4, 3)
     )
 
 
 def test_sum_backward():
-    gradient_check(pt.sum, pt.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(1,))
-    gradient_check(pt.sum, pt.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(0,))
-    gradient_check(pt.sum, pt.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(0, 1))
-    gradient_check(pt.sum, pt.Tensor(np.random.randn(5, 4, 1), requires_grad=True), dim=(0, 1))
+    gradient_check(fl.sum, fl.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(1,))
+    gradient_check(fl.sum, fl.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(0,))
+    gradient_check(fl.sum, fl.Tensor(np.random.randn(5, 4), requires_grad=True), dim=(0, 1))
+    gradient_check(fl.sum, fl.Tensor(np.random.randn(5, 4, 1), requires_grad=True), dim=(0, 1))
 
 
 ##############################################################################
@@ -484,8 +484,8 @@ def test_sum_backward():
 
 def test_topo_sort():
     # Test case 1
-    a1 = pt.Tensor(np.asarray([[0.88282157]]), requires_grad=True)
-    b1 = pt.Tensor(np.asarray([[0.90170084]]), requires_grad=True)
+    a1 = fl.Tensor(np.asarray([[0.88282157]]), requires_grad=True)
+    b1 = fl.Tensor(np.asarray([[0.90170084]]), requires_grad=True)
     c1 = 3 * a1 * a1 + 4 * b1 * a1 - a1
 
     soln = np.array(
@@ -502,14 +502,14 @@ def test_topo_sort():
         ]
     )
 
-    topo_order = np.array([x.numpy() for x in pt.autograd.find_topo_sort([c1])])
+    topo_order = np.array([x.numpy() for x in fl.autograd.find_topo_sort([c1])])
 
     assert len(soln) == len(topo_order)
     np.testing.assert_allclose(topo_order, soln, rtol=1e-06, atol=1e-06)
 
     # Test case 2
-    a1 = pt.Tensor(np.asarray([[0.20914675], [0.65264178]]), requires_grad=True)
-    b1 = pt.Tensor(np.asarray([[0.65394286, 0.08218317]]), requires_grad=True)
+    a1 = fl.Tensor(np.asarray([[0.20914675], [0.65264178]]), requires_grad=True)
+    b1 = fl.Tensor(np.asarray([[0.65394286, 0.08218317]]), requires_grad=True)
     c1 = 3 * ((b1 @ a1) + (2.3412 * b1) @ a1) + 1.5
 
     soln = [
@@ -523,7 +523,7 @@ def test_topo_sort():
         np.array([[3.40855553]]),
     ]
 
-    topo_order = [x.numpy() for x in pt.autograd.find_topo_sort([c1])]
+    topo_order = [x.numpy() for x in fl.autograd.find_topo_sort([c1])]
 
     assert len(soln) == len(topo_order)
     # step through list as entries differ in length
@@ -531,11 +531,11 @@ def test_topo_sort():
         np.testing.assert_allclose(t, s, rtol=1e-06, atol=1e-06)
 
     # Test case 3
-    a = pt.Tensor(np.asarray([[1.4335016, 0.30559972], [0.08130171, -1.15072371]]), requires_grad=True)
-    b = pt.Tensor(np.asarray([[1.34571691, -0.95584433], [-0.99428573, -0.04017499]]), requires_grad=True)
+    a = fl.Tensor(np.asarray([[1.4335016, 0.30559972], [0.08130171, -1.15072371]]), requires_grad=True)
+    b = fl.Tensor(np.asarray([[1.34571691, -0.95584433], [-0.99428573, -0.04017499]]), requires_grad=True)
     e = (a @ b + b - a) @ a
 
-    topo_order = np.array([x.numpy() for x in pt.autograd.find_topo_sort([e])])
+    topo_order = np.array([x.numpy() for x in fl.autograd.find_topo_sort([e])])
 
     soln = np.array(
         [
@@ -559,31 +559,31 @@ def test_topo_sort():
 
 def test_compute_gradient():
     gradient_check(
-        lambda A, B, C: pt.sum((A @ B + C) * (A @ B), dim=None),
-        pt.Tensor(np.random.randn(10, 9), requires_grad=True),
-        pt.Tensor(np.random.randn(9, 8), requires_grad=True),
-        pt.Tensor(np.random.randn(10, 8), requires_grad=True),
+        lambda A, B, C: fl.sum((A @ B + C) * (A @ B), dim=None),
+        fl.Tensor(np.random.randn(10, 9), requires_grad=True),
+        fl.Tensor(np.random.randn(9, 8), requires_grad=True),
+        fl.Tensor(np.random.randn(10, 8), requires_grad=True),
         backward=True,
     )
     gradient_check(
-        lambda A, B: pt.sum(pt.broadcast_to(A, shape=(10, 9)) * B, dim=None),
-        pt.Tensor(np.random.randn(10, 1), requires_grad=True),
-        pt.Tensor(np.random.randn(10, 9), requires_grad=True),
+        lambda A, B: fl.sum(fl.broadcast_to(A, shape=(10, 9)) * B, dim=None),
+        fl.Tensor(np.random.randn(10, 1), requires_grad=True),
+        fl.Tensor(np.random.randn(10, 9), requires_grad=True),
         backward=True,
     )
     gradient_check(
-        lambda A, B, C: pt.sum(
-            pt.reshape(A, shape=(10, 10)) @ B / 5 + C, dim=None
+        lambda A, B, C: fl.sum(
+            fl.reshape(A, shape=(10, 10)) @ B / 5 + C, dim=None
         ),
-        pt.Tensor(np.random.randn(100), requires_grad=True),
-        pt.Tensor(np.random.randn(10, 5), requires_grad=True),
-        pt.Tensor(np.random.randn(10, 5), requires_grad=True),
+        fl.Tensor(np.random.randn(100), requires_grad=True),
+        fl.Tensor(np.random.randn(10, 5), requires_grad=True),
+        fl.Tensor(np.random.randn(10, 5), requires_grad=True),
         backward=True,
     )
 
     # check gradient of gradient
-    x2 = pt.Tensor([6], requires_grad=True)
-    x3 = pt.Tensor([0], requires_grad=True)
+    x2 = fl.Tensor([6], requires_grad=True)
+    x3 = fl.Tensor([0], requires_grad=True)
     y = x2 * x2 + x2 * x3
     y.backward()
     grad_x2 = x2.grad
@@ -605,35 +605,35 @@ def test_compute_gradient():
 ### TESTS CODE FOR softmax_loss
 
 
-def test_softmax_loss_pt():
+def test_softmax_loss_fl():
     # test forward pass for log
     np.testing.assert_allclose(
-        pt.log(pt.Tensor([[4.0], [4.55]])).numpy(),
+        fl.log(fl.Tensor([[4.0], [4.55]])).numpy(),
         np.array([[1.38629436112], [1.515127232963]]),
     )
 
     # test backward pass for log
-    gradient_check(pt.log, pt.Tensor(1 + np.random.rand(5, 4), requires_grad=True))
+    gradient_check(fl.log, fl.Tensor(1 + np.random.rand(5, 4), requires_grad=True))
 
     X, y = parse_mnist(
         "data/train-images-idx3-ubyte.gz", "data/train-labels-idx1-ubyte.gz"
     )
     np.random.seed(0)
-    Z = pt.Tensor(np.zeros((y.shape[0], 10)).astype(np.float32))
+    Z = fl.Tensor(np.zeros((y.shape[0], 10)).astype(np.float32))
     y_one_hot = np.zeros((y.shape[0], 10))
     y_one_hot[np.arange(y.size), y] = 1
-    y = pt.Tensor(y_one_hot)
+    y = fl.Tensor(y_one_hot)
     np.testing.assert_allclose(
         softmax_loss(Z, y).numpy(), 2.3025850, rtol=1e-6, atol=1e-6
     )
-    Z = pt.Tensor(np.random.randn(y.shape[0], 10).astype(np.float32))
+    Z = fl.Tensor(np.random.randn(y.shape[0], 10).astype(np.float32))
     np.testing.assert_allclose(
         softmax_loss(Z, y).numpy(), 2.7291998, rtol=1e-6, atol=1e-6
     )
 
     # test softmax loss backward
-    Zsmall = pt.Tensor(np.random.randn(16, 10).astype(np.float32), requires_grad=True)
-    ysmall = pt.Tensor(y_one_hot[:16], requires_grad=True)
+    Zsmall = fl.Tensor(np.random.randn(16, 10).astype(np.float32), requires_grad=True)
+    ysmall = fl.Tensor(y_one_hot[:16], requires_grad=True)
     gradient_check(softmax_loss, Zsmall, ysmall, tol=0.01, backward=True)
 
 
@@ -641,11 +641,11 @@ def test_softmax_loss_pt():
 ### TESTS CODE FOR nn_epoch
 
 
-def test_nn_epoch_pt():
+def test_nn_epoch_fl():
     # test forward/backward pass for relu
     np.testing.assert_allclose(
-        pt.relu(
-            pt.Tensor(
+        fl.relu(
+            fl.Tensor(
                 [
                     [-46.9, -48.8, -45.45, -49.0],
                     [-49.75, -48.75, -45.8, -49.25],
@@ -655,7 +655,7 @@ def test_nn_epoch_pt():
         ).numpy(),
         np.array([[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]),
     )
-    gradient_check(pt.relu, pt.Tensor(np.random.randn(5, 4), requires_grad=True))
+    gradient_check(fl.relu, fl.Tensor(np.random.randn(5, 4), requires_grad=True))
 
     # test nn gradients
     np.random.seed(0)
@@ -664,20 +664,20 @@ def test_nn_epoch_pt():
     W1 = np.random.randn(5, 10).astype(np.float32) / np.sqrt(10)
     W2 = np.random.randn(10, 3).astype(np.float32) / np.sqrt(3)
     W1_0, W2_0 = W1.copy(), W2.copy()
-    W1 = pt.Tensor(W1, requires_grad=True)
-    W2 = pt.Tensor(W2, requires_grad=True)
-    X_ = pt.Tensor(X)
+    W1 = fl.Tensor(W1, requires_grad=True)
+    W2 = fl.Tensor(W2, requires_grad=True)
+    X_ = fl.Tensor(X)
     y_one_hot = np.zeros((y.shape[0], 3))
     y_one_hot[np.arange(y.size), y] = 1
-    y_ = pt.Tensor(y_one_hot)
+    y_ = fl.Tensor(y_one_hot)
     dW1 = nd.Gradient(
         lambda W1_: softmax_loss(
-            pt.relu(X_ @ pt.Tensor(W1_).reshape((5, 10))) @ W2, y_
+            fl.relu(X_ @ fl.Tensor(W1_).reshape((5, 10))) @ W2, y_
         ).numpy()
     )(W1.numpy())
     dW2 = nd.Gradient(
         lambda W2_: softmax_loss(
-            pt.relu(X_ @ W1) @ pt.Tensor(W2_).reshape((10, 3)), y_
+            fl.relu(X_ @ W1) @ fl.Tensor(W2_).reshape((10, 3)), y_
         ).numpy()
     )(W2.numpy())
     W1, W2 = nn_epoch(X, y, W1, W2, lr=1.0, batch=50)
@@ -693,8 +693,8 @@ def test_nn_epoch_pt():
         "data/train-images-idx3-ubyte.gz", "data/train-labels-idx1-ubyte.gz"
     )
     np.random.seed(0)
-    W1 = pt.Tensor(np.random.randn(X.shape[1], 100).astype(np.float32) / np.sqrt(100), requires_grad=True)
-    W2 = pt.Tensor(np.random.randn(100, 10).astype(np.float32) / np.sqrt(10), requires_grad=True)
+    W1 = fl.Tensor(np.random.randn(X.shape[1], 100).astype(np.float32) / np.sqrt(100), requires_grad=True)
+    W2 = fl.Tensor(np.random.randn(100, 10).astype(np.float32) / np.sqrt(10), requires_grad=True)
     W1, W2 = nn_epoch(X, y, W1, W2, lr=0.2, batch=100)
     np.testing.assert_allclose(
         np.linalg.norm(W1.numpy()), 28.437788, rtol=1e-5, atol=1e-5
@@ -703,7 +703,7 @@ def test_nn_epoch_pt():
         np.linalg.norm(W2.numpy()), 10.455095, rtol=1e-5, atol=1e-5
     )
     np.testing.assert_allclose(
-        loss_err(pt.relu(pt.Tensor(X) @ W1) @ W2, y),
+        loss_err(fl.relu(fl.Tensor(X) @ W1) @ W2, y),
         (0.19770025, 0.06006667),
         rtol=1e-4,
         atol=1e-4,

@@ -1,8 +1,8 @@
 import sys
 
-sys.path.append("../pytensor")
-import pytensor as pt
-import pytensor.nn as nn
+sys.path.append("../flowlite")
+import flowlite as fl
+import flowlite.nn as nn
 import numpy as np
 import time
 import os
@@ -65,16 +65,16 @@ def epoch(dataloader, model, opt=None):
     return tot_error / sample_nums, np.mean(tot_loss)
 
 
-def train_mnist(batch_size=100, epochs=10, optimizer=pt.optim.Adam,
+def train_mnist(batch_size=100, epochs=10, optimizer=fl.optim.Adam,
                 lr=0.001, weight_decay=0.001, hidden_dim=100, data_dir="data"):
     np.random.seed(4)
-    mnist_train_dataset = pt.data.MNISTDataset("data/train-images-idx3-ubyte.gz",
+    mnist_train_dataset = fl.data.MNISTDataset("data/train-images-idx3-ubyte.gz",
                                                 "data/train-labels-idx1-ubyte.gz")
-    train_dataloader = pt.data.DataLoader(dataset=mnist_train_dataset, batch_size=batch_size, shuffle=True)
+    train_dataloader = fl.data.DataLoader(dataset=mnist_train_dataset, batch_size=batch_size, shuffle=True)
 
-    mnist_test_dataset = pt.data.MNISTDataset("data/t10k-images-idx3-ubyte.gz",
+    mnist_test_dataset = fl.data.MNISTDataset("data/t10k-images-idx3-ubyte.gz",
                                                "data/t10k-labels-idx1-ubyte.gz")
-    test_dataloader = pt.data.DataLoader(dataset=mnist_test_dataset, batch_size=batch_size, shuffle=False)
+    test_dataloader = fl.data.DataLoader(dataset=mnist_test_dataset, batch_size=batch_size, shuffle=False)
 
     resnet = MLPResNet(784, hidden_dim)
 

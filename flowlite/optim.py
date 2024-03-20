@@ -1,5 +1,5 @@
-import pytensor as pt
-import pytensor.nn as nn
+import flowlite as fl
+import flowlite.nn as nn
 
 
 class Optimizer:
@@ -34,7 +34,7 @@ class SGD(Optimizer):
             grad = param.grad.data + self.weight_decay * param.data
             grad = self.u.get(param, 0) * self.momentum + (1 - self.momentum) * grad
             #TODO: figure out if it should be ndl.Tensor(grad, dtype=param.dtype, requires_grad=False)
-            self.u[param] = pt.Tensor(grad, dtype=param.dtype)
+            self.u[param] = fl.Tensor(grad, dtype=param.dtype)
             param.data -= self.lr * self.u[param]
 
 
@@ -75,7 +75,7 @@ class Adam(Optimizer):
             self.v[param] = self.beta2 * self.v.get(param, 0) + (1 - self.beta2) * (grad ** 2)
             m_hat = (self.m[param] / (1 - self.beta1 ** self.t)).detach()
             v_hat = (self.v[param] / (1 - self.beta2 ** self.t)).detach()
-            update = pt.Tensor(self.lr * m_hat / (v_hat ** 0.5 + self.eps), dtype=param.dtype).detach()
+            update = fl.Tensor(self.lr * m_hat / (v_hat ** 0.5 + self.eps), dtype=param.dtype).detach()
             param.data -= update.detach()
 
 #TODO: more optim, like AdaGrad, RMSprop

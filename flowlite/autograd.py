@@ -1,9 +1,9 @@
-import pytensor
+import flowlite
 from .backend_numpy import Device, cpu, all_devices
 from typing import List, Optional, Dict, Tuple, Union
 import numpy
 
-from pytensor import init
+from flowlite import init
 
 TENSOR_COUNTER = 0
 
@@ -184,60 +184,60 @@ class Tensor:
 
     def __add__(self, other):
         if isinstance(other, Tensor):
-            return pytensor.ops.EWiseAdd()(self, other)
+            return flowlite.ops.EWiseAdd()(self, other)
         else:
-            return pytensor.ops.AddScalar(other)(self)
+            return flowlite.ops.AddScalar(other)(self)
 
     def __mul__(self, other):
         if isinstance(other, Tensor):
-            return pytensor.ops.EWiseMul()(self, other)
+            return flowlite.ops.EWiseMul()(self, other)
         else:
-            return pytensor.ops.MulScalar(other)(self)
+            return flowlite.ops.MulScalar(other)(self)
 
     def __pow__(self, other):
         if isinstance(other, Tensor):
-            return pytensor.ops.EWisePow()(self, other)
+            return flowlite.ops.EWisePow()(self, other)
         else:
-            return pytensor.ops.PowerScalar(other)(self)
+            return flowlite.ops.PowerScalar(other)(self)
 
     def __sub__(self, other):
         if isinstance(other, Tensor):
-            return pytensor.ops.EWiseAdd()(self, pytensor.ops.Negate()(other))
+            return flowlite.ops.EWiseAdd()(self, flowlite.ops.Negate()(other))
         else:
-            return pytensor.ops.AddScalar(-other)(self)
+            return flowlite.ops.AddScalar(-other)(self)
 
     def __rsub__(self, other):
         if isinstance(other, Tensor):
-            return pytensor.ops.EWiseAdd()(pytensor.ops.Negate()(self), other)
+            return flowlite.ops.EWiseAdd()(flowlite.ops.Negate()(self), other)
         else:
-            return pytensor.ops.AddScalar(other)(-self)
+            return flowlite.ops.AddScalar(other)(-self)
 
     def __truediv__(self, other):
         if isinstance(other, Tensor):
-            return pytensor.ops.EWiseDiv()(self, other)
+            return flowlite.ops.EWiseDiv()(self, other)
         else:
-            return pytensor.ops.DivScalar(other)(self)
+            return flowlite.ops.DivScalar(other)(self)
 
     def __matmul__(self, other):
-        return pytensor.ops.MatMul()(self, other)
+        return flowlite.ops.MatMul()(self, other)
 
     def matmul(self, other):
-        return pytensor.ops.MatMul()(self, other)
+        return flowlite.ops.MatMul()(self, other)
 
     def sum(self, dim = None, keepdim: bool = False):
-        return pytensor.ops.Sum(dim, keepdim)(self)
+        return flowlite.ops.Sum(dim, keepdim)(self)
 
     def broadcast_to(self, shape):
-        return pytensor.ops.BroadcastTo(shape)(self)
+        return flowlite.ops.BroadcastTo(shape)(self)
 
     def reshape(self, shape):
-        return pytensor.ops.Reshape(shape)(self)
+        return flowlite.ops.Reshape(shape)(self)
 
     def __neg__(self):
-        return pytensor.ops.Negate()(self)
+        return flowlite.ops.Negate()(self)
 
     def transpose(self, dim0: int, dim1: int):
-        return pytensor.ops.Transpose(dim0=dim0, dim1=dim1)(self)
+        return flowlite.ops.Transpose(dim0=dim0, dim1=dim1)(self)
     
     #TODO: add tensor.T(), checkout args in pytorch
 

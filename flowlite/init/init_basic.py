@@ -1,25 +1,25 @@
-import pytensor as pt
+import flowlite as fl
 
 
 def rand(*shape, low=0.0, high=1.0, device=None, dtype="float32", requires_grad=False):
     """Generate random numbers uniform between low and high"""
-    device = pt.cpu() if device is None else device
+    device = fl.cpu() if device is None else device
     array = device.rand(*shape) * (high - low) + low
-    return pt.Tensor(array, device=device, dtype=dtype, requires_grad=requires_grad)
+    return fl.Tensor(array, device=device, dtype=dtype, requires_grad=requires_grad)
 
 
 def randn(*shape, mean=0.0, std=1.0, device=None, dtype="float32", requires_grad=False):
     """Generate random normal with specified mean and std deviation"""
-    device = pt.cpu() if device is None else device
+    device = fl.cpu() if device is None else device
     array = device.randn(*shape) * std + mean
-    return pt.Tensor(array, device=device, dtype=dtype, requires_grad=requires_grad)
+    return fl.Tensor(array, device=device, dtype=dtype, requires_grad=requires_grad)
 
 
 def constant(*shape, c=1.0, device=None, dtype="float32", requires_grad=False):
     """Generate constant Tensor"""
-    device = pt.cpu() if device is None else device
+    device = fl.cpu() if device is None else device
     array = device.ones(*shape, dtype=dtype) * c  # note: can change dtype
-    return pt.Tensor(array, device=device, dtype=dtype, requires_grad=requires_grad)
+    return fl.Tensor(array, device=device, dtype=dtype, requires_grad=requires_grad)
 
 
 def ones(*shape, device=None, dtype="float32", requires_grad=False):
@@ -38,15 +38,15 @@ def zeros(*shape, device=None, dtype="float32", requires_grad=False):
 
 def randb(*shape, p=0.5, device=None, dtype="bool", requires_grad=False):
     """Generate binary random Tensor"""
-    device = pt.cpu() if device is None else device
+    device = fl.cpu() if device is None else device
     array = device.rand(*shape) <= p
-    return pt.Tensor(array, device=device, dtype=dtype, requires_grad=requires_grad)
+    return fl.Tensor(array, device=device, dtype=dtype, requires_grad=requires_grad)
 
 
 def one_hot(n, i, device=None, dtype="float32", requires_grad=False):
     """Generate one-hot encoding Tensor"""
-    device = pt.cpu() if device is None else device
-    return pt.Tensor(
+    device = fl.cpu() if device is None else device
+    return fl.Tensor(
         device.one_hot(n, i.numpy(), dtype=dtype),
         device=device,
         requires_grad=requires_grad,
