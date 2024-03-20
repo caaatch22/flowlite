@@ -13,7 +13,7 @@ class EWiseAdd(Op):
     def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         return out_grad, out_grad
     
-def add(a, b):
+def add(a: Tensor, b: Tensor) -> Tensor:
     return EWiseAdd()(a, b)
 
 
@@ -28,7 +28,7 @@ class AddScalar(Op):
         return out_grad
 
 
-def add_scalar(a, scalar):
+def add_scalar(a: Tensor, scalar) -> Tensor:
     return AddScalar(scalar)(a)
 
 
@@ -41,7 +41,7 @@ class EWiseMul(Op):
         return out_grad * rhs, out_grad * lhs
 
 
-def multiply(a, b):
+def multiply(a: Tensor, b: Tensor) -> Tensor:
     return EWiseMul()(a, b)
 
 
@@ -56,7 +56,7 @@ class MulScalar(Op):
         return (out_grad * self.scalar,)
 
 
-def mul_scalar(a, scalar):
+def mul_scalar(a: Tensor, scalar) -> Tensor:
     return MulScalar(scalar)(a)
 
 
@@ -71,7 +71,7 @@ class PowerScalar(Op):
         return out_grad * self.scalar * node.inputs[0] ** (self.scalar - 1)         
 
 
-def power_scalar(a, scalar):
+def power_scalar(a: Tensor, scalar) -> Tensor:
     return PowerScalar(scalar)(a)
 
 
@@ -79,7 +79,7 @@ class EWisePow(Op):
     def compute(self, a: NDArray, b: NDArray) -> NDArray:
         return a**b
 
-    def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
+    def gradient(self, out_grad: Tensor, node: Tensor):
         if not isinstance(node.inputs[0], NDArray) or not isinstance(
             node.inputs[1], NDArray
         ):
@@ -90,12 +90,12 @@ class EWisePow(Op):
         grad_b = out_grad * (a**b) * array_api.log(a.data)
         return grad_a, grad_b
 
-def power(a, b):
+def power(a: Tensor, b: Tensor) -> Tensor:
     return EWisePow()(a, b)
 
 
 class EWiseDiv(Op):
-    def compute(self, a: NDArray, b: NDArray):
+    def compute(self, a: NDArray, b: NDArray) -> NDArray:
         return a / b
 
     def gradient(self, out_grad: Tensor, node: Tensor):
@@ -105,7 +105,7 @@ class EWiseDiv(Op):
         return grad_a, grad_b
 
 
-def divide(a, b):
+def divide(a: Tensor, b: Tensor):
     return EWiseDiv()(a, b)
 
 
@@ -113,14 +113,14 @@ class DivScalar(Op):
     def __init__(self, scalar):
         self.scalar = scalar
 
-    def compute(self, a):
+    def compute(self, a: NDArray) -> NDArray:
         return a / self.scalar
 
-    def gradient(self, out_grad: Tensor, node: Tensor):
+    def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         return out_grad / self.scalar
 
 
-def divide_scalar(a, scalar):
+def divide_scalar(a: Tensor, scalar) -> Tensor:
     return DivScalar(scalar)(a)
 
 
@@ -132,7 +132,7 @@ class Transpose(Op):
     def compute(self, x: NDArray) -> NDArray:
         return array_api.swapaxes(x, self.dim0, self.dim1)
 
-    def gradient(self, out_grad, node):
+    def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         return out_grad.transpose(self.dim0, self.dim1)
 
 
@@ -148,22 +148,22 @@ class Reshape(Op):
     def compute(self, x: NDArray) -> NDArray:
         return array_api.reshape(x, self.shape)
 
-    def gradient(self, out_grad, node):
+    def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         return out_grad.reshape(node.inputs[0].shape)
 
 
-def reshape(a, shape):
-    return Reshape(shape)(a)
+def reshape(x: Tensor, shape):
+    return Reshape(shape)(x)
 
 
 class BroadcastTo(Op):
     def __init__(self, shape):
         self.shape = shape
 
-    def compute(self, a):
-        return array_api.broadcast_to(a, self.shape)
+    def compute(self, x: NDArray) -> NDArray:
+        return array_api.broadcast_to(x, self.shape)
 
-    def gradient(self, out_grad, node):
+    def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         ori_shape = node.inputs[0].shape
         shrink_dims = [i for i in range(len(self.shape))]
         for i, (ori, cur) in enumerate(zip(reversed(ori_shape), reversed(self.shape))):
@@ -173,8 +173,8 @@ class BroadcastTo(Op):
         return out_grad.sum(shrink_dims).reshape(ori_shape)
 
 
-def broadcast_to(a, shape):
-    return BroadcastTo(shape)(a)
+def broadcast_to(x: Tensor, shape):
+    return BroadcastTo(shape)(x)
 
 
 class Sum(Op):
@@ -182,8 +182,8 @@ class Sum(Op):
         self.dim = dim
         self.keepdim = keepdim
 
-    def compute(self, a):
-        return array_api.sum(a, axis=self.dim, keepdims=self.keepdim)
+    def compute(self, x) -> NDArray:
+        return array_api.sum(x, axis=self.dim, keepdims=self.keepdim)
 
     def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         #TODO: not sure for keepdim == True
@@ -207,7 +207,7 @@ class MatMul(Op):
     def compute(self, a: NDArray, b: NDArray) -> NDArray:
         return array_api.matmul(a, b)
 
-    def gradient(self, out_grad, node):
+    def gradient(self, out_grad: Tensor, node: Tensor):
         lhs, rhs = node.inputs
         lhs_ndim = len(lhs.shape)
         rhs_ndim = len(rhs.shape)
@@ -221,7 +221,7 @@ class MatMul(Op):
         return lgrad, rgrad
 
 
-def matmul(a, b):
+def matmul(a: Tensor, b: Tensor) -> Tensor:
     return MatMul()(a, b)
 
 
@@ -261,7 +261,6 @@ def exp(a):
     return Exp()(a)
 
 
-#TODO: add inplace=True
 class ReLU(Op):
     def __init__(self, inplace: bool = False):
         self.inplace = inplace
