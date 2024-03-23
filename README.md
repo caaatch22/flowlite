@@ -59,6 +59,8 @@ print('Training step complete.')
 - [ ] support c++ backend, instead of only numpy
 - [ ] support cuda backend
 - [ ] add sequential model like rnn, lstm, gru
+- [ ] add pruning and quantization
+- [ ] matmul tiled version, use [this](https://github.com/caaatch22/optimize-gemm)
 
 ## License
 This project is licensed under the [Apache License (Version 2.0)](https://github.com/caaatch22/flowlite/blob/main/LICENSE).

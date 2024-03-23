@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../flowlite')
 import flowlite as fl
 import flowlite.nn as nn
 

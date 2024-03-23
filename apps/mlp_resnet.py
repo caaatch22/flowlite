@@ -81,11 +81,15 @@ def train_mnist(batch_size=100, epochs=10, optimizer=fl.optim.Adam,
     opt = optimizer(resnet.parameters(), lr=lr, weight_decay=weight_decay)
     print("epochs = ", epochs)
     for i in range(epochs):
-      print("i = ", i)
-      train_acc, train_loss = epoch(dataloader=train_dataloader, model=resnet, opt=opt)
-      test_acc, test_loss = epoch(dataloader=test_dataloader, model=resnet)
+        print(f"epoch = {i}", )
+        train_err, train_loss = epoch(dataloader=train_dataloader, model=resnet, opt=opt)
+        test_err, test_loss = epoch(dataloader=test_dataloader, model=resnet)
+        test_acc = 1 - test_err
+        print(f"train_err = {train_err}, train_loss = {train_loss}")
+        print(f'test_acc = {test_acc}, test_loss = {test_loss}')
+    
 
-    return train_acc, train_loss, test_acc, test_loss
+    return train_err, train_loss, test_err, test_loss
 
 
 if __name__ == "__main__":

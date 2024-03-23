@@ -11,7 +11,7 @@ class CPUDevice(Device):
     """Represents data that sits in CPU"""
 
     def __repr__(self):
-        return "pytensor.cpu()"
+        return "flowlite.cpu()"
 
     def __hash__(self):
         return self.__repr__().__hash__()

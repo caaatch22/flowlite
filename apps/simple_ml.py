@@ -48,7 +48,7 @@ def parse_mnist(image_filesname, label_filename):
     ### END YOUR SOLUTION
 
 
-def softmax_loss(Z, y_one_hot) -> fl.Tensor(np.float32):
+def softmax_loss(Z, y_one_hot):
     """Return softmax loss.  Note that for the purposes of this assignment,
     you don't need to worry about "nicely" scaling the numerical properties
     of the log-sum-exp computation, but can just compute this directly.

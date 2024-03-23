@@ -119,7 +119,7 @@ class CrossEntropyLoss(Module):
         '''
         logits: (bs, num_classes), 
         '''
-        one_hot_y = init.one_hot(logits.shape[1], y)
+        one_hot_y = init.one_hot(logits.shape[1], y, device=logits.device)
         return ops.sum(ops.logsumexp(logits, axes=1) - (logits * one_hot_y).sum(dim=1)) / logits.shape[0]
 
 
@@ -152,12 +152,11 @@ class BatchNorm1d(Module):
     def forward(self, x: Tensor) -> Tensor:
         # x: (batch_size, C) C is #feature or #channels
         if self.training:
-            mean = x.sum(dim=0, keepdim=True).broadcast_to(x.shape) / x.shape[0]
-            var = ((x - mean)**2).sum(dim=0, keepdim=True).broadcast_to(x.shape) / x.shape[0]
-            #TODO: not to * mean.underly()[0]
-            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean.underly()[0]
-            self.running_var = (1 - self.momentum) * self.running_var + self.momentum * var.underly()[0]
-            norm = (x - mean) / ((var + self.eps) ** 0.5)
+            mean = x.sum(dim=0) / x.shape[0] # (num_features, )
+            var = ((x - mean.broadcast_to(x.shape))**2).sum(dim=0) / x.shape[0] #(num_features,)
+            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean.data
+            self.running_var = (1 - self.momentum) * self.running_var + self.momentum * var.data
+            norm = (x - mean.broadcast_to(x.shape)) / ((var.broadcast_to(x.shape) + self.eps) ** 0.5)
             #TODO: auto broadcast_to support in numpy but not in our implemented NDArray
             return self.weight.broadcast_to(x.shape) * norm + self.bias.broadcast_to(x.shape)
         else:

@@ -1,10 +1,10 @@
 
 from typing import Optional, Union, Tuple
 
-from ..autograd import NDArray
 from ..autograd import Op, Tensor
 
-import numpy as array_api
+from ..backend_selection import array_api, NDArray
+
 #TODO: for all ops, maybe super().__init()__ in __init__
 class EWiseAdd(Op):
     def compute(self, a: NDArray, b: NDArray) -> NDArray:
@@ -161,8 +161,8 @@ class BroadcastTo(Op):
         self.shape = shape
 
     def compute(self, x: NDArray) -> NDArray:
-        return array_api.broadcast_to(x, self.shape)
-
+        return array_api.broadcast_to(x, self.shape).compact()
+    
     def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         ori_shape = node.inputs[0].shape
         shrink_dims = [i for i in range(len(self.shape))]
@@ -170,6 +170,12 @@ class BroadcastTo(Op):
             if ori == cur:
                 shrink_dims[len(self.shape) - i - 1] = -1
         shrink_dims = tuple(filter(lambda x: x >= 0, shrink_dims))
+        #TODO: not sure, but should be this
+        # when shrink_dim == (), means that in forward path, we broadcasted to the same shape
+        # for example a.broadcast_to(x.shape) when x.shape == (3, 1) and a.shape == (3, 1)
+        # test_nn_layernorm_backward_4
+        if shrink_dims == ():
+            return out_grad
         return out_grad.sum(shrink_dims).reshape(ori_shape)
 
 
@@ -183,7 +189,7 @@ class Sum(Op):
         self.keepdim = keepdim
 
     def compute(self, x) -> NDArray:
-        return array_api.sum(x, axis=self.dim, keepdims=self.keepdim)
+        return array_api.sum(x, dim=self.dim, keepdim=self.keepdim)
 
     def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
         #TODO: not sure for keepdim == True
@@ -261,24 +267,18 @@ def exp(a):
     return Exp()(a)
 
 
+#TODO: use inplace
 class ReLU(Op):
     def __init__(self, inplace: bool = False):
         self.inplace = inplace
 
     def compute(self, x: NDArray) -> NDArray:
-        if self.inplace:
-            x[x < 0] = 0
-            return x
+        return array_api.maximum(x, 0)
 
-        out = x.copy()
-        out[out < 0] = 0
-        return out
-
+    #TODO: [maybe BUG]: maybe deep copy of node.unerly() ?
     def gradient(self, out_grad: Tensor, node: Tensor) -> Tensor:
-        out = node.underly().copy()
-        out[out > 0] = 1
-        out[out <= 0] = 0
-        return out_grad * Tensor(out)
+        out = node.underly()
+        return out_grad * Tensor(out > 0, device=out_grad.device)
 
 
 def relu(x, inplace: bool = False):

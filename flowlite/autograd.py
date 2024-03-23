@@ -1,5 +1,4 @@
 import flowlite
-from .backend_numpy import Device, cpu, all_devices
 from typing import List, Optional, Dict, Tuple, Union
 import numpy
 
@@ -7,9 +6,7 @@ from flowlite import init
 
 TENSOR_COUNTER = 0
 
-import numpy as array_api
-
-NDArray = numpy.ndarray
+from .backend_selection import Device, array_api, NDArray, default_device, cpu, all_devices
 
 
 class Op:
@@ -268,8 +265,7 @@ def compute_gradient_of_variables(output_tensor: Tensor, out_grad: Tensor):
         # sum up partial ajoints
         ajoint = sum_node_list(node_to_output_grads_list[node])
         node.grad = ajoint
-        if node.op is None:
-            # Leaf node
+        if node.is_leaf():
             continue
         # compute partial ajoints for input node
         partial_ajoints = node.op.gradient_as_tuple(ajoint, node)

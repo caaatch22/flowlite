@@ -6,7 +6,9 @@ __pycache__
 .pytest_cache
 
 needle/
+tmp/
 tmp.py
+
 
 flowlite.egg-info/
 dist/

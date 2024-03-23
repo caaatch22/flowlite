@@ -20,7 +20,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    install_requires=['numpy'],
+    install_requires=['numpy', 'pybind11'],
     keywords=['deep learning', 'auto-diff'],
     classifiers=[
         "Intended Audience :: Developers",

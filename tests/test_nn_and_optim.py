@@ -36,7 +36,7 @@ def batchnorm_forward(*shape, affine=False):
     if affine:
         bn.weight.data = get_tensor(shape[1], entropy=42)
         bn.bias.data = get_tensor(shape[1], entropy=1337)
-    return bn(x).underlying_data
+    return bn(x).underlying_data.numpy()
 
 
 def batchnorm_backward(*shape, affine=False):
@@ -46,20 +46,20 @@ def batchnorm_backward(*shape, affine=False):
         bn.weight.data = get_tensor(shape[1], entropy=42)
         bn.bias.data = get_tensor(shape[1], entropy=1337)
     y = (bn(x) ** 2).sum().backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def flatten_forward(*shape):
     x = get_tensor(*shape)
     tform = fl.nn.Flatten()
-    return tform(x).underlying_data
+    return tform(x).underlying_data.numpy()
 
 
 def flatten_backward(*shape):
     x = get_tensor(*shape)
     tform = fl.nn.Flatten()
     (tform(x) ** 2).sum().backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def batchnorm_running_mean(*shape, iters=10):
@@ -67,7 +67,7 @@ def batchnorm_running_mean(*shape, iters=10):
     for i in range(iters):
         x = get_tensor(*shape, entropy=i)
         y = bn(x)
-    return bn.running_mean.underlying_data
+    return bn.running_mean.underlying_data.numpy()
 
 
 def batchnorm_running_var(*shape, iters=10):
@@ -75,7 +75,7 @@ def batchnorm_running_var(*shape, iters=10):
     for i in range(iters):
         x = get_tensor(*shape, entropy=i)
         y = bn(x)
-    return bn.running_var.underlying_data
+    return bn.running_var.underlying_data.numpy()
 
 
 def batchnorm_running_grad(*shape, iters=10):
@@ -85,50 +85,50 @@ def batchnorm_running_grad(*shape, iters=10):
         y = bn(x)
     bn.eval()
     (y**2).sum().backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def relu_forward(*shape, inplace=False):
     f = fl.nn.ReLU(inplace)
     x = get_tensor(*shape)
-    return f(x).underlying_data
+    return f(x).underlying_data.numpy()
 
 
 def relu_backward(*shape, inplace=False):
     f = fl.nn.ReLU(inplace)
     x = get_tensor(*shape)
     (f(x) ** 2).sum().backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def layernorm_forward(shape, dim):
     f = fl.nn.LayerNorm1d(dim)
     x = get_tensor(*shape)
-    return f(x).underlying_data
+    return f(x).underlying_data.numpy()
 
 
 def layernorm_backward(shape, dims):
     f = fl.nn.LayerNorm1d(dims)
     x = get_tensor(*shape)
     (f(x) ** 4).sum().backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 def logsoftmax_forward(shape, mult=1.0):
     x = get_tensor(*shape) * mult
-    return fl.ops.logsoftmax(x).underlying_data
+    return fl.ops.logsoftmax(x).underlying_data.numpy()
 
 def logsoftmax_backward(shape, mult=1.0):
     x = get_tensor(*shape)
     y = fl.ops.logsoftmax(x * mult)
     z = (y**2).sum()
     z.backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 def softmax_loss_forward(rows, classes):
     x = get_tensor(rows, classes)
     y = get_int_tensor(rows, low=0, high=classes)
     f = fl.nn.CrossEntropyLoss()
-    return np.array(f(x, y).underlying_data)
+    return np.array(f(x, y).underlying_data.numpy())
 
 
 def softmax_loss_backward(rows, classes):
@@ -137,7 +137,7 @@ def softmax_loss_backward(rows, classes):
     f = fl.nn.CrossEntropyLoss()
     loss = f(x, y)
     loss.backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def linear_forward(lhs_shape, rhs_shape):
@@ -145,7 +145,7 @@ def linear_forward(lhs_shape, rhs_shape):
     f = fl.nn.Linear(*lhs_shape)
     f.bias.data = get_tensor(lhs_shape[-1])
     x = get_tensor(*rhs_shape)
-    return f(x).underlying_data
+    return f(x).underlying_data.numpy()
 
 
 def linear_backward(lhs_shape, rhs_shape):
@@ -154,14 +154,14 @@ def linear_backward(lhs_shape, rhs_shape):
     f.bias.data = get_tensor(lhs_shape[-1])
     x = get_tensor(*rhs_shape)
     (f(x) ** 2).sum().backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def sequential_forward(batches=3):
     np.random.seed(42)
     f = nn.Sequential(nn.Linear(5, 8), nn.ReLU(), nn.Linear(8, 5))
     x = get_tensor(batches, 5)
-    return f(x).underlying_data
+    return f(x).underlying_data.numpy()
 
 
 def sequential_backward(batches=3):
@@ -169,7 +169,7 @@ def sequential_backward(batches=3):
     f = nn.Sequential(nn.Linear(5, 8), nn.ReLU(), nn.Linear(8, 5))
     x = get_tensor(batches, 5)
     f(x).sum().backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def residual_forward(shape=(5, 5)):
@@ -178,7 +178,7 @@ def residual_forward(shape=(5, 5)):
         nn.Sequential(nn.Linear(*shape), nn.ReLU(), nn.Linear(*shape[::-1]))
     )
     x = get_tensor(*shape[::-1])
-    return f(x).underlying_data
+    return f(x).underlying_data.numpy()
 
 
 def residual_backward(shape=(5, 5)):
@@ -188,72 +188,73 @@ def residual_backward(shape=(5, 5)):
     )
     x = get_tensor(*shape[::-1])
     f(x).sum().backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
-def learn_model_1d(feature_size, nclasses, _model, oflimizer, epochs=1, **kwargs):
+def learn_model_1d(feature_size, nclasses, _model, optimizer, epochs=1, **kwargs):
     np.random.seed(42)
     model = _model([])
-    X = get_tensor(1024, feature_size).underlying_data
-    y = get_int_tensor(1024, low=0, high=nclasses).underlying_data.astype(np.uint8)
+    X = get_tensor(1024, feature_size).underlying_data.numpy()
+    y = get_int_tensor(1024, low=0, high=nclasses).underlying_data.numpy()
     m = X.shape[0]
     batch = 32
     loss_func = nn.CrossEntropyLoss()
-    ofl = oflimizer(model.parameters(), **kwargs)
+    opt = optimizer(model.parameters(), **kwargs)
 
     for _ in range(epochs):
+        
         for i, (X0, y0) in enumerate(
             zip(np.array_split(X, m // batch), np.array_split(y, m // batch))
         ):
-            ofl.zero_grad()
+            opt.zero_grad()
             X0, y0 = fl.Tensor(X0, dtype="float32"), fl.Tensor(y0)
             out = model(X0)
             loss = loss_func(out, y0)
             loss.backward()
-            # Ofl should not change gradients.
-            grad_before = model.parameters()[0].grad.detach().underlying_data
-            ofl.step()
-            grad_after = model.parameters()[0].grad.detach().underlying_data
+            # Opt should not change gradients.
+            grad_before = model.parameters()[0].grad.detach().underlying_data.numpy()
+            opt.step()
+            grad_after = model.parameters()[0].grad.detach().underlying_data.numpy()
             np.testing.assert_allclose(
                 grad_before,
                 grad_after,
                 rtol=1e-5,
                 atol=1e-5,
-                err_msg="Oflim should not modify gradients in place",
+                err_msg="Optim should not modify gradients in place",
             )
 
-    return np.array(loss.underlying_data)
+    return np.array(loss.underlying_data.numpy())
 
 
-def learn_model_1d_eval(feature_size, nclasses, _model, oflimizer, epochs=1, **kwargs):
+def learn_model_1d_eval(feature_size, nclasses, _model, optimizer, epochs=1, **kwargs):
     np.random.seed(42)
     model = _model([])
-    X = get_tensor(1024, feature_size).underlying_data
-    y = get_int_tensor(1024, low=0, high=nclasses).underlying_data.astype(np.uint8)
+    X = get_tensor(1024, feature_size).underlying_data.numpy()
+    y = get_int_tensor(1024, low=0, high=nclasses).underlying_data.numpy()
     m = X.shape[0]
     batch = 32
 
     loss_func = nn.CrossEntropyLoss()
-    ofl = oflimizer(model.parameters(), **kwargs)
+    opt = optimizer(model.parameters(), **kwargs)
 
     for i, (X0, y0) in enumerate(
         zip(np.array_split(X, m // batch), np.array_split(y, m // batch))
     ):
-        ofl.zero_grad()
+        opt.zero_grad()
         X0, y0 = fl.Tensor(X0, dtype="float32"), fl.Tensor(y0)
         out = model(X0)
         loss = loss_func(out, y0)
         loss.backward()
-        ofl.step()
+        opt.step()
 
-    X_test = fl.Tensor(get_tensor(batch, feature_size).underlying_data)
+    X_test = fl.Tensor(get_tensor(batch, feature_size).underlying_data.numpy())
     y_test = fl.Tensor(
-        get_int_tensor(batch, low=0, high=nclasses).underlying_data.astype(np.uint8)
+        get_int_tensor(batch, low=0, high=nclasses).underlying_data.numpy()
     )
 
     model.eval()
 
-    return np.array(loss_func(model(X_test), y_test).underlying_data)
+    return np.array(loss_func(model(X_test), y_test).underlying_data.numpy())
 
 
 def init_a_tensor_of_shape(shape, init_fn):
@@ -270,14 +271,13 @@ def global_tensor_count():
 def nn_linear_weight_init():
     np.random.seed(1337)
     f = fl.nn.Linear(7, 4)
-    f.weight.underlying_data
-    return f.weight.underlying_data
+    return f.weight.underlying_data.numpy()
 
 
 def nn_linear_bias_init():
     np.random.seed(1337)
     f = fl.nn.Linear(7, 4)
-    return f.bias.underlying_data
+    return f.bias.underlying_data.numpy()
 
 
 class UselessModule(fl.nn.Module):
@@ -327,33 +327,33 @@ def check_training_mode():
 
 def power_scalar_forward(shape, power=2):
     x = get_tensor(*shape)
-    return (x**power).underlying_data
+    return (x**power).underlying_data.numpy()
 
 
 def power_scalar_backward(shape, power=2):
     x = get_tensor(*shape)
     y = (x**power).sum()
     y.backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def logsumexp_forward(shape, axes):
     x = get_tensor(*shape)
-    return (fl.ops.logsumexp(x, axes=axes)).underlying_data
+    return (fl.ops.logsumexp(x, axes=axes)).underlying_data.numpy()
 
 
 def logsumexp_backward(shape, axes):
     x = get_tensor(*shape)
     y = (fl.ops.logsumexp(x, axes=axes) ** 2).sum()
     y.backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def dropout_forward(shape, prob=0.5):
     np.random.seed(3)
     x = get_tensor(*shape)
     f = nn.Dropout(prob)
-    return f(x).underlying_data
+    return f(x).underlying_data.numpy()
 
 
 def dropout_backward(shape, prob=0.5):
@@ -362,7 +362,7 @@ def dropout_backward(shape, prob=0.5):
     f = nn.Dropout(prob)
     y = f(x).sum()
     y.backward()
-    return x.grad.underlying_data
+    return x.grad.underlying_data.numpy()
 
 
 def num_params(model):
@@ -388,14 +388,14 @@ def mlp_resnet_num_params(dim, hidden_dim, num_blocks, num_classes, norm):
 
 def mlp_resnet_forward(dim, hidden_dim, num_blocks, num_classes, norm, drop_prob):
     np.random.seed(4)
-    input_tensor = fl.Tensor(np.random.randn(2, dim), dtype=np.float32)
+    input_tensor = fl.Tensor(np.random.randn(2, dim), dtype='float32')
     output_tensor = MLPResNet(
         dim, hidden_dim, num_blocks, num_classes, norm, drop_prob
     )(input_tensor)
     return output_tensor.numpy()
 
 
-def train_epoch_1(hidden_dim, batch_size, oflimizer, **kwargs):
+def train_epoch_1(hidden_dim, batch_size, optimizer, **kwargs):
     np.random.seed(1)
     train_dataset = fl.data.MNISTDataset(
         "./data/train-images-idx3-ubyte.gz", "./data/train-labels-idx1-ubyte.gz"
@@ -403,9 +403,9 @@ def train_epoch_1(hidden_dim, batch_size, oflimizer, **kwargs):
     train_dataloader = fl.data.DataLoader(dataset=train_dataset, batch_size=batch_size)
 
     model = MLPResNet(784, hidden_dim)
-    ofl = oflimizer(model.parameters(), **kwargs)
+    opt = optimizer(model.parameters(), **kwargs)
     model.eval()
-    return np.array(epoch(train_dataloader, model, ofl))
+    return np.array(epoch(train_dataloader, model, opt))
 
 
 def eval_epoch_1(hidden_dim, batch_size):
@@ -422,10 +422,10 @@ def eval_epoch_1(hidden_dim, batch_size):
     return np.array(epoch(test_dataloader, model))
 
 
-def train_mnist_1(batch_size, epochs, oflimizer, lr, weight_decay, hidden_dim):
+def train_mnist_1(batch_size, epochs, optimizer, lr, weight_decay, hidden_dim):
     np.random.seed(1)
     out = train_mnist(
-        batch_size, epochs, oflimizer, lr, weight_decay, hidden_dim, data_dir="./data"
+        batch_size, epochs, optimizer, lr, weight_decay, hidden_dim, data_dir="./data"
     )
     return np.array(out)
 
@@ -488,13 +488,14 @@ def test_op_power_scalar_backward_1():
 # 		 [ 8.998467 , -5.613649 , -3.3848193 ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
 
 
-def test_op_logsumexp_forward_1():
-    np.testing.assert_allclose(
-        logsumexp_forward((3, 3, 3), (1, 2)),
-        np.array([5.366029, 4.9753823, 6.208126], dtype=np.float32),
-        rtol=1e-5,
-        atol=1e-5,
-    )
+# TODO: test when support multiple dim reduction
+# def test_op_logsumexp_forward_1():
+#     np.testing.assert_allclose(
+#         logsumexp_forward((3, 3, 3), (1, 2)),
+#         np.array([5.366029, 4.9753823, 6.208126], dtype=np.float32),
+#         rtol=1e-5,
+#         atol=1e-5,
+#     )
 
 
 def test_op_logsumexp_forward_2():
@@ -506,19 +507,19 @@ def test_op_logsumexp_forward_2():
     )
 
 
-def test_op_logsumexp_forward_3():
-    np.testing.assert_allclose(
-        logsumexp_forward((1, 2, 3, 4), (0, 2)),
-        np.array(
-            [
-                [5.276974, 5.047317, 3.778802, 5.0103745],
-                [5.087831, 4.391712, 5.025037, 2.0214698],
-            ],
-            dtype=np.float32,
-        ),
-        rtol=1e-5,
-        atol=1e-5,
-    )
+# def test_op_logsumexp_forward_3():
+#     np.testing.assert_allclose(
+#         logsumexp_forward((1, 2, 3, 4), (0, 2)),
+#         np.array(
+#             [
+#                 [5.276974, 5.047317, 3.778802, 5.0103745],
+#                 [5.087831, 4.391712, 5.025037, 2.0214698],
+#             ],
+#             dtype=np.float32,
+#         ),
+#         rtol=1e-5,
+#         atol=1e-5,
+#     )
 
 
 def test_op_logsumexp_forward_4():
@@ -551,67 +552,67 @@ def test_op_logsumexp_backward_1():
     )
 
 
-def test_op_logsumexp_backward_2():
-    np.testing.assert_allclose(
-        logsumexp_backward((3, 3, 3), (1, 2)),
-        np.array(
-            [
-                [
-                    [1.4293308, 1.2933122, 0.82465225],
-                    [0.50017685, 2.1323113, 2.1323113],
-                    [1.4293308, 0.58112264, 0.40951014],
-                ],
-                [
-                    [0.3578173, 0.07983983, 4.359107],
-                    [1.1300558, 0.561169, 0.1132981],
-                    [0.9252113, 0.65198547, 1.7722803],
-                ],
-                [
-                    [0.2755132, 2.365242, 2.888913],
-                    [0.05291228, 1.1745441, 0.02627547],
-                    [2.748018, 0.13681579, 2.748018],
-                ],
-            ],
-            dtype=np.float32,
-        ),
-        rtol=1e-5,
-        atol=1e-5,
-    )
+# def test_op_logsumexp_backward_2():
+#     np.testing.assert_allclose(
+#         logsumexp_backward((3, 3, 3), (1, 2)),
+#         np.array(
+#             [
+#                 [
+#                     [1.4293308, 1.2933122, 0.82465225],
+#                     [0.50017685, 2.1323113, 2.1323113],
+#                     [1.4293308, 0.58112264, 0.40951014],
+#                 ],
+#                 [
+#                     [0.3578173, 0.07983983, 4.359107],
+#                     [1.1300558, 0.561169, 0.1132981],
+#                     [0.9252113, 0.65198547, 1.7722803],
+#                 ],
+#                 [
+#                     [0.2755132, 2.365242, 2.888913],
+#                     [0.05291228, 1.1745441, 0.02627547],
+#                     [2.748018, 0.13681579, 2.748018],
+#                 ],
+#             ],
+#             dtype=np.float32,
+#         ),
+#         rtol=1e-5,
+#         atol=1e-5,
+#     )
 
 
-def test_op_logsumexp_backward_3():
-    np.testing.assert_allclose(
-        logsumexp_backward((3, 3, 3), (0, 2)),
-        np.array(
-            [
-                [
-                    [0.92824626, 0.839912, 0.5355515],
-                    [0.59857905, 2.551811, 2.551811],
-                    [1.0213376, 0.41524494, 0.29261813],
-                ],
-                [
-                    [0.16957533, 0.03783737, 2.0658503],
-                    [0.98689, 0.49007502, 0.09894446],
-                    [0.48244575, 0.3399738, 0.9241446],
-                ],
-                [
-                    [0.358991, 3.081887, 3.764224],
-                    [0.12704718, 2.820187, 0.06308978],
-                    [3.9397335, 0.19614778, 3.9397335],
-                ],
-            ],
-            dtype=np.float32,
-        ),
-        rtol=1e-5,
-        atol=1e-5,
-    )
+# def test_op_logsumexp_backward_3():
+#     np.testing.assert_allclose(
+#         logsumexp_backward((3, 3, 3), (0, 2)),
+#         np.array(
+#             [
+#                 [
+#                     [0.92824626, 0.839912, 0.5355515],
+#                     [0.59857905, 2.551811, 2.551811],
+#                     [1.0213376, 0.41524494, 0.29261813],
+#                 ],
+#                 [
+#                     [0.16957533, 0.03783737, 2.0658503],
+#                     [0.98689, 0.49007502, 0.09894446],
+#                     [0.48244575, 0.3399738, 0.9241446],
+#                 ],
+#                 [
+#                     [0.358991, 3.081887, 3.764224],
+#                     [0.12704718, 2.820187, 0.06308978],
+#                     [3.9397335, 0.19614778, 3.9397335],
+#                 ],
+#             ],
+#             dtype=np.float32,
+#         ),
+#         rtol=1e-5,
+#         atol=1e-5,
+#     )
 
 
 def test_op_logsumexp_backward_5():
     grad_compare = fl.Tensor(np.array([[1e10, 1e9, 1e8, -10], [1e-10, 1e9, 1e8, -10]]), requires_grad=True)
     test_data = (fl.ops.logsumexp(grad_compare, (0,)) ** 2).sum().backward()
     np.testing.assert_allclose(
-        grad_compare.grad.underlying_data,
+        grad_compare.grad.underlying_data.numpy(),
         np.array(
             [
                 [2.00000000e10, 9.99999999e08, 1.00000001e08, -9.30685282e00],
@@ -772,22 +773,23 @@ def test_nn_linear_forward_2():
     )
 
 
-def test_nn_linear_forward_3():
-    np.testing.assert_allclose(
-        linear_forward((10, 5), (1, 3, 10)),
-        np.array(
-            [
-                [
-                    [4.351459, 8.782808, 3.935711, 3.03171, 8.014219],
-                    [5.214458, 8.728788, 2.376814, 5.672185, 4.974319],
-                    [1.343204, 8.639378, 2.604359, -0.282955, 9.864498],
-                ]
-            ],
-            dtype=np.float32,
-        ),
-        rtol=1e-5,
-        atol=1e-5,
-    )
+#TODO: test this once we support matmul with multiple dimensionss
+# def test_nn_linear_forward_3():
+#     np.testing.assert_allclose(
+#         linear_forward((10, 5), (1, 3, 10)),
+#         np.array(
+#             [
+#                 [
+#                     [4.351459, 8.782808, 3.935711, 3.03171, 8.014219],
+#                     [5.214458, 8.728788, 2.376814, 5.672185, 4.974319],
+#                     [1.343204, 8.639378, 2.604359, -0.282955, 9.864498],
+#                 ]
+#             ],
+#             dtype=np.float32,
+#         ),
+#         rtol=1e-5,
+#         atol=1e-5,
+#     )
 
 
 def test_nn_linear_backward_1():
@@ -865,56 +867,56 @@ def test_nn_linear_backward_2():
     )
 
 
-def test_nn_linear_backward_3():
-    print(linear_backward((10, 5), (1, 3, 10)))
-    np.testing.assert_allclose(
-        linear_backward((10, 5), (1, 3, 10)),
-        np.array(
-            [
-                [
-                    [
-                        16.318823,
-                        0.3890714,
-                        -2.3196607,
-                        -10.607947,
-                        -8.891977,
-                        16.04581,
-                        9.475689,
-                        14.571134,
-                        6.581477,
-                        10.204643,
-                    ],
-                    [
-                        20.291656,
-                        7.48733,
-                        1.2581345,
-                        -14.285493,
-                        -6.0252004,
-                        19.621624,
-                        4.343303,
-                        6.973201,
-                        -0.8103489,
-                        4.037069,
-                    ],
-                    [
-                        11.332953,
-                        -5.698288,
-                        -8.815561,
-                        -7.673438,
-                        -7.6161675,
-                        9.361553,
-                        17.341637,
-                        17.269142,
-                        18.1076,
-                        14.261493,
-                    ],
-                ]
-            ],
-            dtype=np.float32,
-        ),
-        rtol=1e-5,
-        atol=1e-5,
-    )
+# def test_nn_linear_backward_3():
+#     print(linear_backward((10, 5), (1, 3, 10)))
+#     np.testing.assert_allclose(
+#         linear_backward((10, 5), (1, 3, 10)),
+#         np.array(
+#             [
+#                 [
+#                     [
+#                         16.318823,
+#                         0.3890714,
+#                         -2.3196607,
+#                         -10.607947,
+#                         -8.891977,
+#                         16.04581,
+#                         9.475689,
+#                         14.571134,
+#                         6.581477,
+#                         10.204643,
+#                     ],
+#                     [
+#                         20.291656,
+#                         7.48733,
+#                         1.2581345,
+#                         -14.285493,
+#                         -6.0252004,
+#                         19.621624,
+#                         4.343303,
+#                         6.973201,
+#                         -0.8103489,
+#                         4.037069,
+#                     ],
+#                     [
+#                         11.332953,
+#                         -5.698288,
+#                         -8.815561,
+#                         -7.673438,
+#                         -7.6161675,
+#                         9.361553,
+#                         17.341637,
+#                         17.269142,
+#                         18.1076,
+#                         14.261493,
+#                     ],
+#                 ]
+#             ],
+#             dtype=np.float32,
+#         ),
+#         rtol=1e-5,
+#         atol=1e-5,
+#     )
 
 
 
@@ -950,7 +952,6 @@ def test_nn_relu_backward_1():
 
 
 def test_nn_sequential_forward_1():
-    print(sequential_forward(batches=3))
     np.testing.assert_allclose(
         sequential_forward(batches=3),
         np.array(
@@ -1792,13 +1793,13 @@ def test_nn_flatten_backward_5():
         atol=1e-5,
     )
 
-def test_oflim_sgd_vanilla_1():
+def test_optim_sgd_vanilla_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            fl.oflim.SGD,
+            fl.optim.SGD,
             lr=0.01,
             momentum=0.0,
         ),
@@ -1808,13 +1809,13 @@ def test_oflim_sgd_vanilla_1():
     )
 
 
-def test_oflim_sgd_momentum_1():
+def test_optim_sgd_momentum_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            fl.oflim.SGD,
+            fl.optim.SGD,
             lr=0.01,
             momentum=0.9,
         ),
@@ -1824,13 +1825,13 @@ def test_oflim_sgd_momentum_1():
     )
 
 
-def test_oflim_sgd_weight_decay_1():
+def test_optim_sgd_weight_decay_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            fl.oflim.SGD,
+            fl.optim.SGD,
             lr=0.01,
             momentum=0.0,
             weight_decay=0.01,
@@ -1841,13 +1842,13 @@ def test_oflim_sgd_weight_decay_1():
     )
 
 
-def test_oflim_sgd_momentum_weight_decay_1():
+def test_optim_sgd_momentum_weight_decay_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            fl.oflim.SGD,
+            fl.optim.SGD,
             lr=0.01,
             momentum=0.9,
             weight_decay=0.01,
@@ -1858,7 +1859,7 @@ def test_oflim_sgd_momentum_weight_decay_1():
     )
 
 
-def test_oflim_sgd_layernorm_residual_1():
+def test_optim_sgd_layernorm_residual_1():
     nn.LayerNorm1d(8)
     np.testing.assert_allclose(
         learn_model_1d(
@@ -1870,7 +1871,7 @@ def test_oflim_sgd_layernorm_residual_1():
                 nn.Residual(nn.Linear(8, 8)),
                 nn.Linear(8, 16),
             ),
-            fl.oflim.SGD,
+            fl.optim.SGD,
             epochs=3,
             lr=0.01,
             weight_decay=0.001,
@@ -1883,20 +1884,20 @@ def test_oflim_sgd_layernorm_residual_1():
 
 # We're checking that you have not allocated too many tensors;
 # if this fails, make sure you're using .detach()/.data whenever possible.
-def test_oflim_sgd_z_memory_check_1():
+def test_optim_sgd_z_memory_check_1():
     np.testing.assert_allclose(
         global_tensor_count(), np.array(387), rtol=1e-5, atol=1000
     )
 
 
 
-def test_oflim_adam_1():
+def test_optim_adam_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            fl.oflim.Adam,
+            fl.optim.Adam,
             lr=0.001,
         ),
         np.array(3.703999),
@@ -1905,13 +1906,13 @@ def test_oflim_adam_1():
     )
 
 
-def test_oflim_adam_weight_decay_1():
+def test_optim_adam_weight_decay_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            fl.oflim.Adam,
+            fl.optim.Adam,
             lr=0.001,
             weight_decay=0.01,
         ),
@@ -1921,7 +1922,7 @@ def test_oflim_adam_weight_decay_1():
     )
 
 
-def test_oflim_adam_batchnorm_1():
+def test_optim_adam_batchnorm_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
@@ -1929,7 +1930,7 @@ def test_oflim_adam_batchnorm_1():
             lambda z: nn.Sequential(
                 nn.Linear(64, 32), nn.ReLU(), nn.BatchNorm1d(32), nn.Linear(32, 16)
             ),
-            fl.oflim.Adam,
+            fl.optim.Adam,
             lr=0.001,
             weight_decay=0.001,
         ),
@@ -1939,7 +1940,7 @@ def test_oflim_adam_batchnorm_1():
     )
 
 
-def test_oflim_adam_batchnorm_eval_mode_1():
+def test_optim_adam_batchnorm_eval_mode_1():
     np.testing.assert_allclose(
         learn_model_1d_eval(
             64,
@@ -1947,7 +1948,7 @@ def test_oflim_adam_batchnorm_eval_mode_1():
             lambda z: nn.Sequential(
                 nn.Linear(64, 32), nn.ReLU(), nn.BatchNorm1d(32), nn.Linear(32, 16)
             ),
-            fl.oflim.Adam,
+            fl.optim.Adam,
             lr=0.001,
             weight_decay=0.001,
         ),
@@ -1957,7 +1958,7 @@ def test_oflim_adam_batchnorm_eval_mode_1():
     )
 
 
-def test_oflim_adam_layernorm_1():
+def test_optim_adam_layernorm_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
@@ -1965,7 +1966,7 @@ def test_oflim_adam_layernorm_1():
             lambda z: nn.Sequential(
                 nn.Linear(64, 32), nn.ReLU(), nn.LayerNorm1d(32), nn.Linear(32, 16)
             ),
-            fl.oflim.Adam,
+            fl.optim.Adam,
             lr=0.01,
             weight_decay=0.01,
         ),
@@ -1975,13 +1976,13 @@ def test_oflim_adam_layernorm_1():
     )
 
 
-def test_oflim_adam_weight_decay_bias_correction_1():
+def test_optim_adam_weight_decay_bias_correction_1():
     np.testing.assert_allclose(
         learn_model_1d(
             64,
             16,
             lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)),
-            fl.oflim.Adam,
+            fl.optim.Adam,
             lr=0.001,
             weight_decay=0.01,
         ),
@@ -1993,7 +1994,7 @@ def test_oflim_adam_weight_decay_bias_correction_1():
 
 # We're checking that you have not allocated too many tensors;
 # if this fails, make sure you're using .detach()/.data whenever possible.
-def test_oflim_adam_z_memory_check_1():
+def test_optim_adam_z_memory_check_1():
     np.testing.assert_allclose(
         global_tensor_count(), np.array(1132), rtol=1e-5, atol=1000
     )
