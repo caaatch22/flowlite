@@ -283,3 +283,14 @@ class ReLU(Op):
 
 def relu(x, inplace: bool = False):
     return ReLU(inplace)(x)
+
+class Tanh(Op):
+    def compute(self, x: NDArray) -> NDArray:
+        return array_api.tanh(x)
+
+    def gradient(self, out_grad, node):
+        return out_grad * (1 - tanh(node.inputs[0])**2)
+
+
+def tanh(a):
+    return Tanh()(a)

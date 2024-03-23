@@ -97,6 +97,18 @@ class ReLU(Module):
     def forward(self, x: Tensor) -> Tensor:
         return ops.relu(x, inplace=self.inplace)
 
+class Tanh(Module):
+    def forward(self, x: Tensor) -> Tensor:
+        return ops.tanh(x)
+
+
+class Sigmoid(Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x: Tensor) -> Tensor:
+        return (1 + ops.exp(-x))**(-1)
+
 class Sequential(Module):
     def __init__(self, *modules):
         super().__init__()
@@ -112,7 +124,6 @@ class Flatten(Module):
         size = reduce(lambda a, b: a * b, x.shape)
         # we assume the first dim is batch_size
         return x.reshape((x.shape[0], size // x.shape[0]))
-
 
 class CrossEntropyLoss(Module):
     def forward(self, logits: Tensor, y: Tensor) -> Tensor:
